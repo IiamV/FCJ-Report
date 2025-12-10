@@ -1,9 +1,9 @@
 ---
 title: "AWS Cloud Mastery Series #1"
 date: "2025-11-15T08:30:00+07:00"
-weight: 2
+weight: 1
 chapter: false
-pre: " <b> 4.2. </b> "
+pre: " <b> 4.1. </b> "
 ---
 
 

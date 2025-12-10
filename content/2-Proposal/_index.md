@@ -1,9 +1,9 @@
 ---
 title: "BĐP - Online Game Card Sales Platform"
 date: "2025-09-10T10:00:00+07:00"
-weight: 1
+weight: 2
 chapter: false
-pre: " <b> 1. </b> "
+pre: " <b> 2. </b> "
 ---
 
 {{% notice info %}}

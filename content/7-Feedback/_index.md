@@ -6,48 +6,31 @@ chapter: false
 pre: " <b> 7. </b> "
 ---
 
-> Here, you can freely share your personal opinions about your experience participating in the First Cloud Journey program. This will help the FCJ team improve any shortcomings based on the following aspects:
+### Personal Reflections
 
-### Overall Evaluation
+The internship at First Cloud Journey gave me exposure to a working environment that places strong emphasis on technical depth and independent execution. Throughout the program, I had the chance to explore AWS services, collaborate with mentors, and work on tasks that reflected practical industry scenarios rather than purely academic exercises.
 
-**1. Working Environment**
-The environment at the First Cloud Journey (FCJ) program is professional and encourages self-discipline. As an FPT student, I appreciate the modern workspace and the access to AWS resources. The atmosphere is open, but it also requires interns to be very proactive in their work.
+### Internship Experience
 
-**2. Support from Mentor / Team Admin**
-The mentorship style here focuses heavily on self-study and independence. The mentor primarily focused on **reviewing my network architecture** designs for the final project rather than giving detailed step-by-step guidance. Feedback was generally minimal unless I explicitly raised questions or encountered specific blockers. However, when I did ask for clarification regarding the AWS services, the mentor was available to answer and explain the technical constraints.
+**Working Environment**  
+The workspace is structured in a way that encourages focus and autonomy. Interns are expected to manage their own progress, set priorities, and communicate when facing challenges. This level of independence helped me build confidence when approaching unfamiliar technologies.
 
-**3. Relevance of Work to Academic Major**
-The OJT is highly relevant to my major. I was able to apply my knowledge of Web Development and Networking to build the **Game Card Selling Web Application**. Moving from writing code to designing a complete cloud infrastructure (VPC, Subnets, EC2) was a valuable practical experience that school theory hadn't fully covered.
+**Guidance and Mentoring**  
+Instead of constant supervision, the mentoring style allowed room to experiment and validate ideas on my own. Feedback was typically provided during review sessions or when I presented completed work. This approach encouraged me to justify design choices and understand the trade-offs behind each architectural decision.
 
-**4. Learning & Skill Development Opportunities**
-Because the mentor only stepped in when asked, I developed strong **self-research and problem-solving skills**. I learned to dig deep into AWS documentation to configure the VPC and RDS for my project. I also learned how to design a scalable network architecture that meets industry standards.
+**Learning Outcomes**  
+The most valuable aspect of the program was being able to work directly with cloud components rather than only studying them conceptually. Configuring infrastructure, troubleshooting misconfigurations, and reviewing AWS best practices all contributed to my technical growth. I particularly benefited from researching service limitations and understanding how different components fit together.
 
-**5. Company Culture & Team Spirit**
-The culture promotes independence and "Ownership." Everyone is focused on their tasks. While it is not overly social, there is a sense of mutual respect. When I needed administrative support (like AWS credits or account access), the Admin team was quick and helpful.
+**Professional Culture**  
+The culture at FCJ promotes responsibility and respect for shared resources. While the team does not rely heavily on social interaction, there is a clear expectation of professionalism. Administrative requests, such as tool access or environment setup, were resolved efficiently, which helped maintain an uninterrupted workflow.
 
-**6. Internship Policies / Benefits**
-The program provides good benefits, specifically the access to AWS learning materials and the allowance. The flexible schedule allowed me to manage my time effectively between the project and other university requirements.
+### Additional Thoughts
 
----
+**Most Meaningful Moment**  
+Completing key milestones in the project using my own research and problem-solving process was particularly rewarding. It demonstrated that I could take ownership of a task and deliver results without depending heavily on external guidance.
 
-### Additional Questions
-- **What did you find most satisfying during your internship?**
-The most satisfying part was when my **Game Card Selling Web** successfully ran on the architecture I designed myself. Since I didn't get too much hand-holding, getting the VPC and Security Groups to work correctly felt like a true personal achievement.
+**Recommendation**  
+I would recommend this internship to students interested in cloud infrastructure or those who want a hands-on technical environment. The program suits individuals who prefer learning through exploration rather than predefined instructions.
 
-- **What do you think the company should improve for future interns?**
-I think mentors could be a bit more proactive in giving feedback during the early stages of the design, rather than just waiting for questions. Sometimes interns don't know what they don't know, so a few more "checkpoint" reviews would be helpful.
-
-- **If recommending to a friend, would you suggest they intern here? Why or why not?**
-Yes, especially if they are strong at self-learning. This is a great place to force yourself to learn AWS deeply, but you shouldn't expect to be taught everything by hand.
-
----
-
-### Suggestions & Expectations
-- **Do you have any suggestions to improve the internship experience?**
-It would be beneficial to have more technical sharing sessions where mentors critique architecture examples, so we can learn from common mistakes before building our own.
-
-- **Would you like to continue this program in the future?**
-Yes, I appreciate the challenge and would like to continue to learn more advanced AWS services.
-
-- **Any other comments (free sharing):**
-Thank you to the FCJ team for the opportunity to challenge myself and build a real-world cloud project.
+**Final Note**  
+Overall, the internship has been a meaningful experience and has helped me connect theoretical knowledge with real-world implementation. I appreciate the opportunity to work in an environment that challenges me to grow both technically and professionally.

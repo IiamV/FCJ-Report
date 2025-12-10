@@ -8,11 +8,11 @@ pre: " <b> 3. </b> "
 
 This section will list and introduce the blogs you have translated.
 
-### [Blog 1 - Karrot đã xây dựng nền tảng tính năng (feature platform) trên AWS như thế nào, Phần 1: Động lực và phục vụ tính năng (feature serving)](3.1-Blog1/)
-Bài blog này phân tích lý do Karrot, cộng đồng địa phương hàng đầu Hàn Quốc, cần xây dựng một nền tảng tính năng (feature platform) mới. Bài viết đi sâu vào các vấn đề của kiến trúc cũ (phụ thuộc vào máy chủ, khó mở rộng) và trình bày kiến trúc giải pháp mới. Phần này tập trung vào thành phần **Feature Serving**, giải thích cách họ sử dụng multi-level cache (Local Cache, Amazon ElastiCache, Amazon DynamoDB) để đạt được độ trễ thấp cho hệ thống đề xuất ML của mình.
+### [Blog 1 - Tối ưu hóa chi phí: Lợi thế của Amazon Aurora so với cơ sở dữ liệu mã nguồn mở tự quản lý](3.1-Blog1/)
+Bài viết nêu rõ Amazon Aurora giúp giảm chi phí đáng kể so với việc tự vận hành MySQL/PostgreSQL nhờ kiến trúc lưu trữ phân tán, dùng chung giữa các Availability Zone, loại bỏ nhu cầu duy trì nhiều bản sao và lưu trữ dư thừa. Aurora vẫn đảm bảo tính sẵn sàng cao, khả năng mở rộng và độ bền dữ liệu, đồng thời cho phép tiết kiệm hơn nữa thông qua auto-scaling, chế độ serverless và các tối ưu hóa hiệu năng.
 
-### [Blog 2 - Karrot đã xây dựng nền tảng tính năng (feature platform) trên AWS như thế nào, Phần 2: Nhập tính năng (Feature ingestion)](3.2-Blog2/)
-Phần tiếp theo này đi sâu vào thành phần **Feature Ingestion** của nền tảng. Bài viết giải thích chi tiết hai quy trình: **Stream Ingestion** (thu thập dữ liệu thời gian thực) sử dụng Amazon MSK và Amazon EKS, và **Batch Ingestion** (xử lý dữ liệu theo lô) sử dụng AWS Batch và AWS Fargate. Bài blog cũng chia sẻ các kết quả đạt được, bao gồm khả năng xử lý lưu lượng truy cập lớn và tối ưu hóa chi phí nhờ các dịch vụ AWS.
+### [Blog 2 - Hiện đại hóa khối lượng công việc MES bằng Containers: Körber’s Werum PAS-X MES Suite trên AWS Outposts](3.2-Blog2/)
+Bài viết mô tả cách PAS-X MES Suite của Körber có thể chạy trên AWS Outposts với container hóa (như Amazon EKS), giúp các nhà máy dược/biotech đáp ứng yêu cầu về tuân thủ, độ trễ và lưu trữ dữ liệu tại chỗ, trong khi vẫn hưởng lợi từ quản lý theo kiểu đám mây, bảo mật, giám sát và khả năng vận hành hiện đại của AWS.
 
-### [Blog 3 - Triển khai LLMs trên Amazon EKS bằng cách sử dụng vLLM Deep Learning Containers](3.3-Blog3/)
-Bài blog này cung cấp một hướng dẫn kỹ thuật chi tiết về cách triển khai các Large Language Models (LLMs) hiệu suất cao trên Amazon EKS. Giải pháp sử dụng vLLM Deep Learning Containers (DLCs) để tối ưu hóa, kết hợp với các instance P4d (GPU A100), Elastic Fabric Adapter (EFA) cho mạng tốc độ cao, và Amazon FSx for Lustre để lưu trữ model weights. Bài viết hướng dẫn từng bước thiết lập môi trường, từ tạo cluster EKS, cấu hình node group, đến triển khai và kiểm tra API.
+### [Blog 3 - Giới thiệu AWS IoT Device SDK for Swift (Developer Preview)](3.3-Blog3/)
+Bài viết giới thiệu AWS IoT Device SDK cho Swift, cung cấp thư viện và API gốc giúp các nhà phát triển dễ dàng xây dựng ứng dụng IoT bằng Swift và kết nối thiết bị Apple với AWS IoT Core, từ đó đơn giản hóa quy trình phát triển các giải pháp IoT trên hệ sinh thái Apple.

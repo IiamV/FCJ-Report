@@ -6,31 +6,31 @@ chapter: false
 pre: " <b> 6. </b> "
 ---
 
-During my internship at **First Cloud Journey** from **September 2025** to **December 2025**, I had the opportunity to learn, practice, and apply the knowledge acquired in school to a real-world working environment.
+Throughout my internship at **First Cloud Journey** from **September 2025** to **December 2025**, I was able to deepen my technical foundation and bring classroom knowledge into a real production-oriented environment.
 
-I participated in the **"High Availability Game Card Sales Platform on AWS"** project, through which I improved my skills in **Cloud Infrastructure (AWS), Backend Development (Java Spring Boot), System Architecture, and Chaos Engineering**.
+I contributed to the **"High Availability Game Card Sales Platform on AWS"** initiative, where I strengthened my capabilities in **Cloud Infrastructure (AWS), Frontend Development with React, System Design, and Chaos Engineering practices**.
 
-In terms of work ethic, I always strived to complete tasks well, complied with workplace regulations, and actively engaged with colleagues to improve work efficiency.
+From a work-ethic perspective, I consistently aimed to deliver quality results, adhered to organizational standards, and collaborated actively with teammates to improve execution.
 
-To objectively reflect on my internship period, I would like to evaluate myself based on the following criteria:
+To provide a clear and unbiased reflection of my internship experience, I evaluated myself across the following dimensions:
 
 | No. | Criteria | Description | Good | Fair | Average |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Professional knowledge & skills** | Understanding of AWS services, Spring Boot, and applying them to build the Game Card Platform. | ✅ | ☐ | ☐ |
-| 2 | **Ability to learn** | Absorbed new concepts like Chaos Engineering, JWT Auth, and Multi-AZ architecture quickly. |  ☐ | ✅ | ☐ |
-| 3 | **Proactiveness** | Taking initiative in researching solutions (e.g., Secrets Manager, WAF) without waiting for instructions. |  ☐ | ✅ | ☐ |
-| 4 | **Sense of responsibility** | Completed weekly worklogs on time and ensured the project ran successfully. |  ☐ | ✅ | ☐ |
-| 5 | **Discipline** | Adhering to the 12-week roadmap and documenting progress daily. |  ☐ | ☐ | ✅ |
-| 6 | **Progressive mindset** | Willingness to receive feedback on code quality and security practices. |  ☐ | ✅ | ☐ |
-| 7 | **Communication** | Presenting technical ideas and reporting work clearly in the worklogs. | ☐ | ✅ | ☐ |
-| 8 | **Teamwork** | Engaging with the community and mentors during events and workshops. | ✅ | ☐ | ☐ |
-| 9 | **Professional conduct** | Respecting the learning environment and cloud resources (Cost optimization). |  ☐ | ☐ | ✅ |
-| 10 | **Problem-solving skills** | Identifying issues (e.g., Race Conditions) and solving them with Transactional locking. | ✅ | ☐ | ☐ |
-| 11 | **Contribution to project/team** | Successfully deployed a working MVP with HA and Security standards. |  ☐ | ✅ | ☐ |
-| 12 | **Overall** | General evaluation of the entire internship period. | ✅ | ☐ | ☐ |
+| 1 | **Professional knowledge & skills** | Applied AWS services and React effectively in developing the Game Card Platform. | ☐ | ✅ | ☐ |
+| 2 | **Ability to learn** | Quickly understood new concepts including Chaos Engineering, JWT Authentication, and Multi-AZ design. | ☐ | ✅ | ☐ |
+| 3 | **Proactiveness** | Independently explored solutions (e.g., Secrets Manager, WAF) without waiting for direct instructions. | ☐ | ✅ | ☐ |
+| 4 | **Sense of responsibility** | Completed weekly worklogs punctually and ensured project continuity. | ☐ | ✅ | ☐ |
+| 5 | **Discipline** | Followed the 12-week learning plan and maintained daily progress documentation. | ☐ | ☐ | ✅ |
+| 6 | **Growth mindset** | Open to feedback on code quality and security-related improvements. | ✅ | ☐ | ☐ |
+| 7 | **Communication** | Able to explain technical concepts and summarize work clearly in weekly reports. | ☐ | ✅ | ☐ |
+| 8 | **Teamwork** | Engaged with mentors and peers during workshops and community events. | ☐ | ☐ | ✅ |
+| 9 | **Professional conduct** | Demonstrated respect for the training environment and used cloud resources responsibly. | ☐ | ☐ | ✅ |
+| 10 | **Problem-solving skills** | Identified issues such as race conditions and resolved them using transactional locking. | ✅ | ☐ | ☐ |
+| 11 | **Contribution to project/team** | Delivered a functional MVP aligned with high availability and security requirements. | ☐ | ✅ | ☐ |
+| 12 | **Overall** | General assessment of my internship performance. | ✅ | ☐ | ☐ |
 
 ### Areas for Improvement
 
-* **Deepen Technical Depth:** Continue to research advanced topics such as **DevSecOps**, **Kubernetes (EKS)**, and **Serverless** to optimize the system further.
-* **Enhance Communication:** Improve English technical writing and presentation skills to communicate complex architectural decisions more effectively.
-* **Time Management:** Optimize time allocation between researching new technologies and implementing core features to increase productivity.
+* **Strengthen Technical Expertise:** Continue advancing into **DevSecOps**, **Kubernetes (EKS)**, and **Serverless** to enhance architectural capability.  
+* **Improve Communication:** Refine English technical documentation and presentation skills to articulate architectural decisions more effectively.  
+* **Enhance Time Management:** Balance research and feature implementation more efficiently to better support project progress.

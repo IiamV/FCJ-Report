@@ -1,29 +1,59 @@
 ---
 title: "Events Participated"
-date: "2025-09-09T19:53:52+07:00"
-weight: 4
+date: "2025-12-10T09:00:00+07:00"
+weight: 3
 chapter: false
 pre: " <b> 4. </b> "
 ---
 
-During my internship, I participated in **two** major events. Each one was a memorable experience that provided new, interesting, and useful knowledge, along with gifts and wonderful moments connecting with the community.
-
-### [Event 1](4.1-Event1/) 
-&emsp;**Event Name:** AWS Cloud Mastery Series #1: AI/ML/GenAI on AWS  
-
-&emsp;**Date & Time:** 08:30, November 15, 2025  
-
-&emsp;**Location:** AWS Vietnam Office, Bitexco Financial Tower, Ho Chi Minh City  
-
-&emsp;**Role:** Attendee  
+During the internship, I took part in three major events under the **AWS Cloud Mastery Series**. Each workshop provided different perspectives on AI/ML, DevOps, and Cloud Security, allowing me to improve my technical foundation and understand practical industry applications.
 
 ---
 
-### [Event 2](4.2-Event2/) 
-&emsp;**Event Name:** AWS Cloud Mastery Series #3: Security Pillar Workshop  
+## Event 1: “AI/ML/GenAI on AWS Workshop”
+**Date:** November 15, 2025  
+**Location:** AWS Vietnam Office (Bitexco Tower)  
+**Role:** Attendee  
 
-&emsp;**Date & Time:** 08:30, November 29, 2025  
+**Overview:**  
+The workshop introduced the AI/ML ecosystem on AWS, including the end-to-end machine learning workflow using **Amazon SageMaker** and advanced **Generative AI** capabilities with **Amazon Bedrock**. Speakers also demonstrated how to build RAG-based systems and AI Agents for production use cases.
 
-&emsp;**Location:** AWS Vietnam Office, Bitexco Financial Tower, Ho Chi Minh City  
+**What I Learned:**  
+- How SageMaker supports data preparation, training, tuning, and deployment.  
+- How to evaluate and apply Foundation Models (Claude, Llama, Titan).  
+- Techniques in prompt engineering and implementing RAG for higher accuracy.  
+- The importance of guardrails and governance when deploying GenAI applications.
 
-&emsp;**Role:** Attendee
+---
+
+## Event 2: “DevOps on AWS Workshop”
+**Date:** November 17, 2025  
+**Location:** AWS Office  
+**Role:** Attendee  
+
+**Overview:**  
+This full-day workshop explored DevOps culture, CI/CD automation, container orchestration, and Infrastructure as Code. Through hands-on demos, participants learned how to design modern development pipelines and apply observability practices.
+
+**What I Learned:**  
+- Building CI/CD pipelines using CodeCommit, CodeBuild, CodeDeploy, and CodePipeline.  
+- Evaluating deployment strategies such as Blue/Green, Rolling, and Canary.  
+- Managing infrastructure using CloudFormation and the AWS CDK.  
+- Deploying microservices with ECS, EKS, and App Runner.  
+- Configuring CloudWatch dashboards, alarms, and distributed tracing with X-Ray.
+
+---
+
+## Event 3: “AWS Well-Architected – Security Pillar Workshop”
+**Date:** November 29, 2025  
+**Location:** AWS Vietnam Office  
+**Role:** Attendee  
+
+**Overview:**  
+The event covered best practices in cloud security following the AWS Well-Architected Framework. Topics included identity-centric security, monitoring, network protection, data encryption, and automated incident response.
+
+**What I Learned:**  
+- The importance of Zero Trust, least privilege, and the Shared Responsibility Model.  
+- Using IAM Identity Center, permission boundaries, and MFA for strong IAM hygiene.  
+- Organization-level CloudTrail, GuardDuty, and centralized logging for visibility.  
+- Securing workloads with WAF, Shield, Network Firewall, and CI/CD-integrated AppSec.  
+- Automated remediation using Lambda and Step Functions.
