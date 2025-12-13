@@ -6,8 +6,8 @@ chapter: false
 pre: " <b> 2. </b> "
 ---
 
-bởi Brianna Rosentrater, Doruk Ozturk, Krishna Rajeesh và Rohit Jagetia vào ngày 16 APR 2025 trong [Amazon Elastic Kubernetes Service](https://aws.amazon.com/blogs/apn/category/compute/amazon-kubernetes-service/), Amazon RDS, AWS Outposts, AWS Outposts rack, Best Practices, Partner solutions, Technical How-to | Permalink | Comments | Share
-
+> by Vera Xia and Steve Kim on 31 MAR 2025 in [Announcements](https://aws.amazon.com/blogs/developer/category/post-types/announcements/), AWS IoT Core, AWS SDK for Swift, Developer Tools, Intermediate (200), Internet of Things Permalink  Share
+>
 > Brianna Rosentrater, Hybrid Edge Specialist SA – AWS
 > Doruk Ozturk, Sr. Containers Specialist SA – AWS
 > Rohit Jagetia, Sr. GLS Solutions Architect – AWS
