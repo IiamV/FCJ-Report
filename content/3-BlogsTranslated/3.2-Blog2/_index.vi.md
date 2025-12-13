@@ -1,118 +1,78 @@
 ---
-title: "Karrot xây dựng Feature Platform trên AWS, Phần 2: Nhập tính năng (Feature ingestion)"
+title: "Hiện đại hóa Workload MES bằng Containers: Bộ Werum PAS-X MES của Körber trên AWS Outposts"
 date: "2025-08-14T10:00:00+07:00"
 weight: 2
 chapter: false
 pre: " <b> 2. </b> "
 ---
 
-> Tác giả: Hyeonho Kim, Jinhyeong Seo, Minjae Kwon, Hyuk Lee, Jinhyun Park, Jungwoo Song, và Nak-Kwon Choi | Ngày: 14 THÁNG 8, 2025 | Trong: [Advanced (300)](https://aws.amazon.com/blogs/architecture/category/learning-levels/advanced-300/), [Amazon Managed Streaming for Apache Kafka (Amazon MSK)](https://aws.amazon.com/msk/), [AWS Batch](https://aws.amazon.com/batch/), [AWS Fargate](https://aws.amazon.com/fargate/), [Customer Solutions](https://aws.amazon.com/blogs/architecture/category/post-types/customer-solutions/) | [Permalink](https://aws.amazon.com/blogs/architecture/how-karrot-built-a-feature-platform-on-aws-part-2-feature-ingestion/) | [Comments](https://aws.amazon.com/blogs/architecture/how-karrot-built-a-feature-platform-on-aws-part-2-feature-ingestion/#comments) |
->
-> *Bài viết này đồng tác giả với Hyeonho Kim, Jinhyeong Seo và Minjae Kwon từ Karrot.*
+bởi Brianna Rosentrater, Doruk Ozturk, Krishna Rajeesh và Rohit Jagetia vào ngày 16 APR 2025 trong [Amazon Elastic Kubernetes Service](https://aws.amazon.com/blogs/apn/category/compute/amazon-kubernetes-service/), Amazon RDS, AWS Outposts, AWS Outposts rack, Best Practices, Partner solutions, Technical How-to | Permalink | Comments | Share
 
-Trong [Phần 1]({{< ref "/3-blogstranslated/3.1-blog1" >}}) của loạt bài này, chúng tôi đã thảo luận về cách [Karrot](https://about.daangn.com/en/) phát triển một feature platform mới, bao gồm ba thành phần chính: feature serving, một stream ingestion pipeline, và một batch ingestion pipeline. Chúng tôi đã thảo luận về các yêu cầu, kiến trúc giải pháp và feature serving bằng cách sử dụng multi-level cache. Trong bài viết này, chúng tôi sẽ chia sẻ về stream và batch ingestion pipelines cũng như cách chúng nhập dữ liệu vào một online store từ nhiều nguồn sự kiện khác nhau.
+> Brianna Rosentrater, Hybrid Edge Specialist SA – AWS
+> Doruk Ozturk, Sr. Containers Specialist SA – AWS
+> Rohit Jagetia, Sr. GLS Solutions Architect – AWS
+> Krishna Rajeesh, Principal Cloud Consultant – Körber Pharma Software GmbH
 
----
-
-## Tổng quan về giải pháp
-
-Sơ đồ tổng quan về kiến trúc đã được giới thiệu trong [Phần 1]({{< ref "/3-blogstranslated/3.1-blog1" >}}).
-<img src="/images/bl2-1.png" alt="" width="50%">
-
-## Stream ingestion (Nhập dữ liệu luồng)
-
-Stream ingestion là quá trình thu thập dữ liệu từ các nguồn sự kiện khác nhau theo thời gian thực, chuyển đổi nó thành các features, và lưu trữ chúng. Nó bao gồm hai thành phần chính:
-
-* **Message broker** – [Amazon Managed Streaming for Apache Kafka](https://aws.amazon.com/msk/) (Amazon MSK) được sử dụng để lưu trữ các sự kiện được xuất bản từ nhiều dịch vụ nền tảng khác nhau và các sự kiện change data capture (CDC) từ [Amazon Aurora](https://aws.amazon.com/rds/aurora/).
-* **Consumer** – Đây là các pods nằm trên [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/) (Amazon EKS) có nhiệm vụ xử lý các sự kiện theo feature group specifications được định nghĩa trong feature platform và tải chúng vào database và remote cache.
-
-Các Consumers xử lý không chỉ các sự kiện nguồn mà còn cả các sự kiện được [re-published](https://docs.confluent.io/platform/current/streams/faq.html#streams-faq-republish-output-topic). Khi tải features, chúng được thực hiện bằng cách xem xét các chiến lược khác nhau, chẳng hạn như [write-through](https://docs.aws.amazon.com/whitepapers/latest/database-caching-strategies-using-redis/write-through.html) và write-around, và được tải chi tiết bằng cách xem xét cardinality, kích thước dữ liệu và các mẫu truy cập.
-
-Hầu hết các features được tạo dựa trên hai loại sự kiện: các sự kiện xảy ra do hành động người dùng theo thời gian thực, và các sự kiện không đồng bộ xảy ra do thay đổi trạng thái trong dữ liệu người dùng và bài viết. Các sự kiện và features này có mối quan hệ M:N, nghĩa là một sự kiện có thể là nguồn của nhiều features, và một feature có thể được tạo dựa trên nhiều sự kiện.
-
-> *Sơ đồ kiến trúc của stream ingestion pipeline.*
-<img src="/images/bl2-2.png" alt="" width="50%">
-
-Để xử lý hiệu quả các mối quan hệ M:N, cần có một cấu trúc để nhận các sự kiện và phân phối chúng đến nhiều logic xử lý feature. Hai thành phần cốt lõi đã được thiết kế cho mục đích này:
-
-* **Dispatcher** – Nhận các sự kiện từ nhiều consumer groups và truyền chúng đến logic xử lý feature có liên quan
-* **Aggregator** – Xử lý các sự kiện nhận được từ Dispatcher thành các features thực tế
-
-Stream processing pipeline này cho phép tạo và lưu trữ features theo thời gian thực.
-
-### Tối ưu hóa Message broker: Fast at-least-once delivery
-
-Feature platform xử lý tới 25.000 sự kiện mỗi giây, bao gồm cả các sự kiện user behavior log, với tốc độ cao. Tuy nhiên, khi lưu lượng worker tăng đột biến, lỗi xử lý sự kiện hoặc lỗi cơ sở hạ tầng đôi khi gây ra mất sự kiện. Để giải quyết vấn đề này, [automatic commit mode](https://cwiki.apache.org/confluence/display/KAFKA/KIP-41+-+KafkaConsumer+Max+Poll+Records) hiện có đã được thay đổi thành manual commit trong Amazon MSK. Điều này cho phép các sự kiện chỉ được commit khi chúng đã được xử lý chắc chắn, và các sự kiện bị lỗi được gửi đến một retry topic riêng biệt và xử lý hậu kỳ thông qua một dedicated worker.
-
-Tuy nhiên, việc xử lý khối lượng lớn sự kiện một cách đồng bộ với manual commit làm cho tốc độ xử lý chậm hơn khoảng 10 lần và làm tăng độ trễ. Mặc dù tài nguyên consumer group có sẵn, việc đơn thuần tăng số lượng partitions trong Amazon MSK không phải là một giải pháp do các quyền phân partition dành riêng cho từng nhóm. Platform đã thiết kế xử lý song song bên trong các single partitions và triển khai một custom consumer hỗ trợ chức năng retry. Cốt lõi của việc triển khai là đọc số lượng messages bằng fetch size từ partition tại một thời điểm và xử lý chúng bằng cách tạo worker threads song song cho mỗi message. Khi quá trình xử lý hoàn tất, các offsets của các messages thành công sẽ được sắp xếp và một manual commit được thực hiện cho offset lớn nhất, và các messages bị lỗi được republished đến retry topic. Điều này cho phép xử lý song song ngay cả trong một single partition, và concurrency có thể được kiểm soát tự động. Kết quả là, tốc độ xử lý sự kiện nhanh hơn so với phương pháp automatic commit hiện có, và nó được xử lý ổn định mà không bị trễ ngay cả khi số lượng sự kiện tăng lên.
+Các nhà sản xuất trong lĩnh vực khoa học sự sống đang đối mặt với thách thức trong việc duy trì hoạt động sản xuất ổn định đồng thời đáp ứng các yêu cầu tuân thủ nghiêm ngặt. Nhiều doanh nghiệp cần vận hành hệ thống Manufacturing Execution Systems (MES) tại chỗ (on-premises), nhưng vẫn mong muốn tận dụng các lợi ích vận hành từ các dịch vụ cloud được quản lý và duy trì một software stack nhất quán giữa môi trường on-premises và cloud. Bài viết này tập trung vào việc triển khai Werum PAS-X MES của Körber trên [AWS Outposts racks](https://aws.amazon.com/outposts/rack/?nc=sn&loc=2). Bạn có thể chạy MES trên một Outpost logic duy nhất, sử dụng nhiều Outposts (nhiều Outposts [Amazon Resource Names (ARN)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html)), hoặc một multi-rack Outpost (nhiều rack dưới một Outposts ARN duy nhất) nhằm đảm bảo high availability. Outposts mở rộng một hoặc nhiều Amazon VPC vào mạng on-premises, đồng thời cho phép kết nối với nhiều dịch vụ AWS hơn trong [AWS home Region](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/) được liên kết. Khách hàng có thể sử dụng AWS APIs, công cụ và các cơ chế bảo mật để vận hành, quản lý và bảo vệ ứng dụng. AWS chịu trách nhiệm bảo trì hạ tầng Outposts, các dịch vụ AWS và việc vá lỗi phần mềm tương tự như trong môi trường Region. Outposts được thiết kế như một giải pháp có kết nối, tuy nhiên bằng cách sử dụng nhiều Outposts với các kết nối [service link](https://docs.aws.amazon.com/outposts/latest/userguide/region-connectivity.html) dự phòng, bạn có thể lập kế hoạch ứng phó với sự cố mạng hoặc dịch vụ nhằm tránh downtime.
 
 ---
 
-## Stream processing (Xử lý luồng)
+## Tổng quan
 
-Stream ingestion pipeline chỉ thực hiện logic [extract, transform, and load](https://aws.amazon.com/what-is/etl/) (ETL) và xác thực đơn giản. Đã có nhiều yêu cầu về complex stream processing trong feature platform, và một dịch vụ riêng biệt đã được tạo ra để đáp ứng chúng. Feature platform đã không giải quyết các yêu cầu này vì những lý do sau:
+[Bộ Körber’s Werum PAS-X MES Suite](https://www.koerber-pharma.com/en/solutions/software/werum-pas-x-mes-suite#:~:text=PAS%2DX%20MES%20covers%20the,and%20commercial%20production%20to%20packaging.) là một hệ thống quản lý sản xuất cho phép các khách hàng trong lĩnh vực khoa học sự sống giảm tỷ lệ lỗi và chi phí sản xuất. PAS-X MES bao phủ toàn bộ chu trình sản xuất của các ngành dược phẩm, công nghệ sinh học, cũng như cell & gene therapy — từ phát triển quy trình, sản xuất thương mại cho đến đóng gói. MES Suite bao gồm đầy đủ các chức năng quan trọng để hỗ trợ hoạt động sản xuất một cách linh hoạt. Khi triển khai PAS-X MES trên Outposts, khách hàng có thể rút ngắn time-to-market, nâng cao hiệu quả, duy trì tính nhất quán trong vận hành và giảm thiểu nguy cơ gián đoạn workload do mất kết nối mạng với AWS Region. Giải pháp này mang lại một cách tiếp cận tinh gọn cho việc triển khai MES, đồng thời tận dụng các lợi ích từ hạ tầng AWS.
 
-* Mục đích của stream ingestion trong feature platform là thu thập và lưu trữ features theo thời gian thực, trong khi mục đích chính của stream processing là xử lý dữ liệu.
-* Không phải tất cả các features đều yêu cầu xử lý phức tạp. Chúng tôi quyết định rằng không phù hợp để làm phức tạp toàn bộ quá trình thu thập luồng cho một số features.
-* Dữ liệu kết quả của stream processing có thể được sử dụng bên ngoài feature platform, và có các yêu cầu cần xem xét điều này. Do đó, việc tạo một dịch vụ riêng biệt phù hợp hơn với tình hình của Karrot.
-* Ngoài ra, một số dữ liệu nguồn không tồn tại trong AWS, điều này có thể dẫn đến chi phí bổ sung đáng kể nếu mọi thứ được xử lý trong feature platform.
+## Kiến trúc tham chiếu
 
-Mặc dù là một dịch vụ riêng biệt với feature platform, sau đây là phần giới thiệu ngắn gọn về cách feature platform sử dụng dữ liệu thông qua stream processing:
+**Single multi-rack Outpost**
+<img src="/images/blogs/PAS-X-on-Outposts-Application-Architecture-1x-multi-rack-Outposts-3.png" alt="" width="50%">
 
-* **Các trường hợp content embedding đa dạng** – Chúng tôi thực hiện stream processing bằng cách sử dụng các mô hình, và sử dụng các nội dung khác nhau (bài viết, hình ảnh, v.v.) làm giá trị đầu vào cho các mô hình đã được huấn luyện trước để tạo ra các embeddings. Các embeddings này được lưu trữ trong feature platform và được sử dụng làm features trong quá trình đề xuất để cải thiện chất lượng đề xuất.
-* **Các trường hợp Rich feature generation** – Một số dữ liệu đã được xử lý được xử lý thêm bằng cách sử dụng large language models (LLMs) để sử dụng làm features. Một ví dụ là dự đoán một sản phẩm cũ cụ thể thuộc danh mục nào và sử dụng giá trị dự đoán này làm feature.
+> *Hình 1 – PAS-X chạy trên một multi-rack Outpost dưới một ARN duy nhất*
 
----
+Outposts hỗ trợ việc nhóm nhiều Outpost racks lại với nhau một cách logic dưới một ARN duy nhất để quản lý. Amazon [EKS Local Cluster](https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts.html) và [EC2 Placement groups on AWS Outposts](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups-outpost.html) được sử dụng để phân bổ các EKS worker nodes trên nhiều Outpost racks vật lý trong kiến trúc tham chiếu này. [Amazon Relational Database Service (Amazon RDS)](https://aws.amazon.com/rds/) và [read replicas for Amazon RDS on AWS Outposts](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.rr.html) cũng được sử dụng nhằm tăng cường khả năng phục hồi của database. RDS read replica được duy trì thông qua asynchronous replication. Trong trường hợp một rack đơn lẻ gặp sự cố hoặc bị mất kết nối với Region, các worker nodes trên Outpost thứ cấp vẫn tiếp tục hoạt động, và RDS read replica có thể được promote lên thành primary instance để đảm bảo tính liên tục. Kiến trúc tham chiếu này phù hợp với các tổ chức có đủ không gian để triển khai multi-rack Outpost tại một địa điểm duy nhất, và coi trọng việc đặt EKS Kubernetes control plane cục bộ trên Outpost. Việc host Kubernetes control plane tại chỗ giúp giảm thiểu rủi ro downtime của ứng dụng do mất kết nối mạng tạm thời với AWS home Region của Outposts, chẳng hạn như do đứt cáp quang hoặc sự kiện thời tiết. Vì toàn bộ Kubernetes cluster chạy cục bộ trên Outpost, các ứng dụng vẫn duy trì khả năng truy cập. Bạn cũng có thể thực hiện các thao tác quản lý cluster trong thời gian mất kết nối với cloud. Để biết thêm chi tiết, tham khảo [Prepare local Amazon EKS clusters on AWS Outposts for network disconnects](https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-network-disconnects.html).
 
-## Batch ingestion (Nhập dữ liệu theo lô)
+**Two Outpost racks**
+<img src="/images/blogs/PAS-X-on-Outposts-Application-Architecture-2-logical-Outposts-4.png" alt="" width="50%">
 
-Batch ingestion chịu trách nhiệm xử lý và lưu trữ một lượng lớn dữ liệu thành features theo lô. Điều này được chia thành một cron job chạy định kỳ và một backfill job tải một lượng lớn dữ liệu một lần.
+> *Hình 2 – PAS-X chạy trên hai Outposts racks*
 
-Vì mục đích này, [AWS Batch](https://aws.amazon.com/batch/) dựa trên [AWS Fargate](https://aws.amazon.com/fargate/) được sử dụng. AWS Batch jobs chạy trên Fargate được cung cấp độc lập với các môi trường khác, cho phép xử lý quy mô lớn an toàn. Ví dụ, ngay cả khi hơn 1.000 servers hoặc 10.000 vCPUs được sử dụng để backfilling một lượng lớn dữ liệu, chúng vẫn được vận hành tách biệt với các dịch vụ khác và có thể được vận hành hiệu quả với usage-based billing method (phương thức thanh toán dựa trên mức sử dụng).
+Kiến trúc tham chiếu này sử dụng hai Outpost racks logic, mỗi rack có một Outpost ARN riêng. Trong trường hợp này, chúng ta có thể sử dụng [Amazon EKS Extended Cluster](https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts.html) cùng với [Intra-VPC Communication Across Multiple Outposts with Direct VPC Routing](https://aws.amazon.com/blogs/compute/introducing-intra-vpc-communication-across-multiple-outposts-with-direct-vpc-routing/) để phân bổ worker nodes giữa hai Outposts; tuy nhiên Kubernetes control plane sẽ được host trong AWS home Region. Tham khảo [Deploy an Amazon EKS cluster across AWS Outposts with Intra-VPC communication](https://aws.amazon.com/blogs/containers/deploy-an-amazon-eks-cluster-across-aws-outposts-with-intra-vpc-communication/) để biết thêm thông tin và hướng dẫn triển khai. Thiết kế này cũng sử dụng [Multi-AZ Amazon RDS on Outposts](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.maz.html), trong đó synchronous replication được áp dụng giữa primary và standby RDS instances được host trên các Outpost racks riêng biệt nhằm đảm bảo database high availability. Để biết thêm chi tiết, xem [Deploy Amazon RDS on AWS Outposts with Multi-AZ high availability](https://aws.amazon.com/blogs/database/deploy-amazon-rds-on-aws-outposts-with-multi-az-high-availability/). Trong trường hợp một rack đơn lẻ gặp sự cố hoặc bị mất kết nối với Region, các EKS worker nodes trên Outpost thứ cấp vẫn tiếp tục chạy; tuy nhiên các thao tác quản lý và orchestration cục bộ sẽ không khả dụng cho đến khi kết nối service link được khôi phục. Trong thời gian gián đoạn mạng, Amazon RDS vẫn tiếp tục phục vụ database traffic, và khi service link được tái thiết lập, hệ thống sẽ tự động promote standby database instance lên vai trò primary. Các DNS records sẽ được cập nhật tự động để trỏ đến primary mới. Kiến trúc tham chiếu này phù hợp với các tổ chức coi trọng synchronous replication để duy trì standby database instance, đồng thời mong muốn cơ chế automated failover khi primary instance không khả dụng. Thiết kế này cũng cung cấp khả năng phục hồi multi-AZ, vì mỗi Outpost được gắn với một AZ riêng biệt trong Region đã chọn.
 
-Khi thêm features mới, việc tải batch dữ liệu quá khứ hoặc tải định kỳ một lượng lớn dữ liệu là một trong những chức năng cốt lõi của feature platform. Các yêu cầu chính được xem xét trong thiết kế là:
+Trong thời gian xảy ra Outposts service link disconnects, các thao tác quản lý dịch vụ và orchestration đối với các tài nguyên được host trên Outpost sẽ không khả dụng, do control plane của các dịch vụ này nằm trong Region. Các tài nguyên đã được triển khai vẫn sẽ tiếp tục chạy miễn là chúng không phụ thuộc vào một dịch vụ AWS cấp Region để hoàn tất workflow. Liên hệ với AWS account team của bạn để biết thêm thông tin về cách các dịch vụ cụ thể trên Outposts xử lý tình huống service link disconnects.
 
-* Nó phải có khả năng xử lý một lượng lớn dữ liệu.
-* Nó phải có khả năng bắt đầu vào thời gian người dùng mong muốn và hoàn thành công việc trong một khoảng thời gian thích hợp.
-* Nó phải có chi phí vận hành thấp. Tốt nhất là nó nên là một managed service, và sẽ tốt hơn nếu có ít công việc bổ sung hoặc kiến thức chuyên môn cụ thể để vận hành. Ngoài ra, nó nên tái sử dụng mã dịch vụ hiện có càng nhiều càng tốt.
-* Các hoạt động phức tạp cho features hoặc cấu hình của Directed Acyclic Graphs (DAGs) không nhất thiết phải có.
+## Các yếu tố cần cân nhắc
 
-Có một số tùy chọn để lựa chọn, chẳng hạn như [Apache Airflow](https://airflow.apache.org/), nhưng AWS Batch đã được chọn để tránh over-engineering khi xem xét chi phí vận hành theo các yêu cầu hiện tại.
+Nếu workload PAS-X MES của bạn yêu cầu high availability, hãy xem thêm tài liệu [AWS Outposts High Availability Design and Architecture Considerations](https://docs.aws.amazon.com/whitepapers/latest/aws-outposts-high-availability-design/aws-outposts-high-availability-design.html) bên cạnh các điểm sau:
 
-> *Sơ đồ kiến trúc của batch ingestion pipeline.*
-> <img src="/images/bl2-3.png" alt="" width="50%">
+* NFS File Share cho PAS-X MES có thể được host trên một EC2 instance chạy trên Outposts rack của bạn, hoặc trên một server bên ngoài được kết nối với Outpost và chạy trong datacenter của bạn. Nhiều giải pháp NFS của bên thứ ba cũng được hỗ trợ cho Outposts.
+* Bạn có thể host PAS-X MES container images bằng cách sử dụng [Amazon Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/) trong home Region, cục bộ trên một EC2 instance trên Outposts, hoặc trên một server bên ngoài trong datacenter của bạn.
+* Outposts sử dụng [AWS Nitro System](https://aws.amazon.com/ec2/nitro/), bao gồm Nitro Hypervisor nhẹ — đây cũng là hypervisor được sử dụng trong các AWS Regions. Nitro System cung cấp khả năng bảo mật nâng cao bằng cách liên tục giám sát, bảo vệ và xác thực phần cứng cũng như firmware của instance. Các tài nguyên ảo hóa được offload sang phần cứng và phần mềm chuyên dụng, giúp giảm thiểu attack surface. Mô hình bảo mật của Nitro System cũng mặc định không cho phép administrative access, loại bỏ nguy cơ sai sót con người và hành vi can thiệp trái phép. Outposts (và Nitro Hypervisor) không cho phép over-provisioning capacity. Các tùy chọn instance size sẽ khả dụng theo đúng các instance sizes được hỗ trợ bởi instance family tương ứng trên Outposts.
+* Compute và storage capacity trên Outpost của bạn là hữu hạn; do đó cần cân nhắc kỹ lưỡng về mức độ host resiliency mà bạn mong muốn hỗ trợ khi đặt hàng Outpost. Nếu bạn muốn thiết kế failover giữa hai Outposts, mỗi Outpost cần được cấu hình đủ compute và storage capacity để đáp ứng yêu cầu này. AWS account team của bạn có thể hỗ trợ lập kế hoạch capacity và high availability.
 
-Các thành phần chính là:
+## Giám sát workload trên Outposts
 
-* **Scheduler** – Nó trích xuất các mục tiêu cần thực hiện batch jobs theo các specifications như `FeatureGroupSpec` và `IngestionSpec` do người dùng viết trên feature platform, và đăng ký các job specifications tương ứng vào một AWS Batch job (submit job).
-* **AWS Batch** – Các jobs được submit bởi Scheduler được thực thi bằng cách sử dụng job queue và computing environment đã được cấu hình trước. Trong trường hợp AWS Batch, bạn có thể cấu hình môi trường Fargate riêng biệt với các dịch vụ production khác, để ngay cả khi bạn cung cấp tài nguyên quy mô lớn và thực hiện các tác vụ, bạn vẫn có thể thực hiện các tác vụ một cách ổn định mà không ảnh hưởng đến các dịch vụ production khác.
+AWS Outposts tích hợp với [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) và [AWS CloudTrail](https://aws.amazon.com/cloudtrail/) để giám sát và quản trị môi trường Outposts thông qua AWS console và APIs.
 
-### Cải tiến trong tương lai cho Batch ingestion
+Amazon EKS hỗ trợ [Amazon CloudWatch Container Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) nhằm tăng cường khả năng quan sát các containerized workloads, cũng như các công cụ mã nguồn mở như [Prometheus monitoring on Amazon EKS](https://docs.aws.amazon.com/prescriptive-guidance/latest/implementing-logging-monitoring-cloudwatch/prometheus-monitoring-eks.html) và [Grafana in Amazon EKS](https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-onboard-query-grafana-7.3.html). Để biết thêm thông tin, hãy xem [Monitoring best practices for AWS Outposts](https://aws.amazon.com/blogs/mt/monitoring-best-practices-for-aws-outposts/). Đối với cả hai kiến trúc, chúng tôi sử dụng CloudWatch Container Insights làm giải pháp giám sát chính, nhờ khả năng tích hợp liền mạch với Amazon EKS và đặc tính managed service, giúp giảm đáng kể chi phí vận hành.
 
-Cấu hình hiện tại hoạt động tốt và đáng tin cậy, nhưng có một số lĩnh vực cần cải tiến:
+CloudWatch Container Insights cung cấp năng lực giám sát toàn diện trên nhiều lớp của hạ tầng Kubernetes, bao gồm các metrics chi tiết ở mức cluster, node, namespace và workload. Khả năng hiển thị đa chiều này cho phép vừa chủ động cảnh báo, vừa hỗ trợ troubleshooting chuyên sâu khi xảy ra sự cố. Việc tích hợp chặt chẽ với Amazon EKS cho phép triển khai dưới dạng managed add-on với cấu hình tối thiểu, khiến đây trở thành lựa chọn hiệu quả để duy trì observability mạnh mẽ trong các môi trường production.
 
-* **No DAG support** – Feature platform ban đầu thực hiện các tác vụ tương đối đơn giản, chẳng hạn như parsing batch data sources, chuyển đổi chúng sang feature schema, và lưu trữ chúng. Tuy nhiên, khi platform trở nên tiên tiến hơn, các hoạt động phức tạp hơn trở nên cần thiết, và do đó, việc hỗ trợ các cấu hình DAG có thể xử lý features bằng cách thực hiện tuần tự các dependent jobs khác nhau trở nên cần thiết.
-* **Manual configuration for parallel processing** – Hiện tại, khi xử lý dữ liệu quy mô lớn một cách song song, worker phải ước tính thủ công số lượng jobs sẽ được xử lý song song và cung cấp nó trong specification, và Scheduler thực hiện submit job song song dựa trên điều này. Phương pháp này hoàn toàn dựa trên kinh nghiệm, và để hệ thống trở nên tiên tiến hơn, hệ thống phải có khả năng tự động trừu tượng hóa và tối ưu hóa mức độ parallel processing thích hợp.
-* **Limited AWS Batch monitoring usability** – Giám sát AWS Batch có một số hạn chế, chẳng hạn như jobs không chuyển từ trạng thái Runnable sang Running, thiếu hệ thống thông báo thích hợp cho các trường hợp như vậy, và không thể kiểm tra trực tiếp các failed jobs thông qua các URL parameters khi nhận cảnh báo. Các khía cạnh này nên được cải thiện từ góc độ tiện lợi trong vận hành.
+<img src="/images/blogs/Figure3-5.png" alt="" width="50%">
 
----
+> *Hình 3 – CloudWatch Container Insights: metrics ở mức cluster*
 
-## Kết quả
+<img src="/images/blogs/Figure4-4.png" alt="" width="50%">
 
-Tính đến tháng 2 năm 2025, Karrot đã giải quyết các vấn đề chính được đề cập trong giai đoạn đầu phát triển feature platform:
-
-* **Decoupling recommendation logic from flea market server** – Hệ thống đề xuất hiện sử dụng feature platform trên hơn 10 không gian và dịch vụ đề xuất khác nhau.
-* **Securing scalability of features used in recommendation logic** – Với hơn 1.000 high-quality và rich features thu được từ nhiều dịch vụ khác nhau như flea market, advertisements, local jobs, và real estate, chúng tôi đang đóng góp vào sự tiến bộ của logic đề xuất và giúp tất cả các kỹ sư Karrot dễ dàng explore và thêm features.
-* **Maintaining the reliability of feature data sources** – Thông qua feature platform, chúng tôi đang cung cấp dữ liệu đáng tin cậy bằng cách sử dụng consistent schema và ingestion pipeline.
-
-Các kỹ sư Karrot không ngừng cải thiện trải nghiệm người dùng bằng cách nâng cao các đề xuất thông qua các high-quality features nhờ vào feature platform. Điều này đã góp phần tăng click-through rates lên 30% và conversion rates lên 70% so với trước đây bằng cách đề xuất các bài viết mà người dùng có thể quan tâm.
-
-Điều này có thể thực hiện được là nhờ các dịch vụ AWS được sử dụng trong feature platform đã hỗ trợ vững chắc. **[Amazon DynamoDB](https://aws.amazon.com/dynamodb/)** có scalability đáng kinh ngạc trong mọi khía cạnh read, write, và storage, vì vậy có thể xử lý khối lượng công việc thay đổi động mà không phát sinh chi phí vận hành riêng biệt. **[Amazon ElastiCache](https://aws.amazon.com/elasticache/)** đã thể hiện sự ổn định dịch vụ đáng tin cậy cao, vì vậy chúng tôi có thể sử dụng nó một cách tự tin. Ngoài ra, việc scale up, scale down, scale in, và scale out rất dễ dàng và ổn định, vì vậy có thể giảm bớt gánh nặng vận hành. Nó cũng tích hợp liền mạch với hệ sinh thái của Redis OSS, vì vậy chúng tôi có thể sử dụng các hệ sinh thái open source như [Redis Exporter](https://github.com/oliver006/redis_exporter). Amazon MSK cũng hỗ trợ hoạt động đáng tin cậy và tích hợp liền mạch với hệ sinh thái Apache Kafka, giúp việc phát triển và vận hành feature platform dễ dàng.
-
-Hơn nữa, làm việc với AWS cho phép vận hành hiệu quả về chi phí dựa trên sự hỗ trợ và chuyên môn đa dạng của họ. Gần đây, chúng tôi đã gặp vấn đề over-provisioning với ElastiCache cluster của mình. Việc Right-sizing ElastiCache cluster với sự giúp đỡ của nhiều chuyên gia khác nhau (bao gồm cả Solutions Architects) đã giúp tối ưu hóa chi phí ElastiCache gần 40%. Các nguồn nhân lực kỹ thuật từ AWS này đã vô cùng quý giá trong việc vận hành feature platform bằng cách sử dụng các sản phẩm AWS.
-
----
+> *Hình 4 – CloudWatch Container Insights: metrics ở mức workload*
 
 ## Kết luận
 
-Trong loạt bài này, chúng tôi đã thảo luận về cách Karrot xây dựng một feature platform trên AWS. Chúng tôi tin rằng bằng cách kết hợp các dịch vụ AWS và kinh nghiệm của chúng tôi, bạn có thể phát triển và vận hành một feature store mà không gặp khó khăn bằng cách điều chỉnh nó cho phù hợp với yêuV.cầu của công ty bạn. Hãy thử nghiệm việc triển khai này và cho chúng tôi biết suy nghĩ của bạn trong phần bình luận.
+Bài viết này cung cấp tổng quan về các kiến trúc tham chiếu để chạy Werum PAS-X MES của Körber trên AWS Outposts, hướng dẫn giám sát Amazon EKS workload trên Outposts, cũng như các yếu tố bổ sung cần cân nhắc để tùy chỉnh triển khai theo môi trường và yêu cầu của bạn. Outposts cho phép bạn chạy workload cục bộ trong khi vẫn sử dụng cùng AWS APIs, dịch vụ và tooling quen thuộc, qua đó giảm thiểu nguy cơ gián đoạn MES do mất kết nối mạng với AWS Region. Hãy liên hệ với AWS account team của bạn để [kết nối với một Outposts specialist](https://pages.awscloud.com/GLOBAL_PM_LN_outposts-features_2020084_7010z000001Lpcl_01.LandingPage.html) và tìm hiểu thêm.
+
+---
+## Körber – AWS Partner Spotlight
+
+**[Körber Pharma Software GmbH](https://partners.amazonaws.com/partners/0018a00001hHE6iAAG/K%C3%B6rber%20Pharma%20Software%20GmbH) là một AWS Technology partner**, với các giải pháp phần mềm Werum PAS-X giúp các nhà sản xuất dược phẩm số hóa nhà máy pharma, biotech và cell & gene. Thông qua việc sử dụng các dịch vụ AWS, chúng tôi có thể hỗ trợ khách hàng hiện đại hóa MES của họ thông qua containerization.
+
+[Liên hệ Körber](https://partners.amazonaws.com/contactpartner?partnerId=0018a00001hHE6iAAG&partnerName=K%C3%B6rber%20Pharma%20Software%20GmbH) | [Tổng quan Partner](https://partners.amazonaws.com/partners/0018a00001hHE6iAAG/K%C3%B6rber%20Pharma%20Software%20GmbH)
+
+TAGS: [Amazon EKS](https://aws.amazon.com/blogs/apn/tag/amazon-eks/), [Amazon RDS](https://aws.amazon.com/blogs/apn/tag/amazon-rds/), [AWS Outposts](https://aws.amazon.com/blogs/apn/tag/aws-outposts/), [AWS Partner Solution](https://aws.amazon.com/blogs/apn/tag/aws-partner-solution/), [Körber Pharma Software](https://aws.amazon.com/blogs/apn/tag/korber-pharma-software/)
