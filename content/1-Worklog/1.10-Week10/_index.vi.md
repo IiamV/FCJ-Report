@@ -1,78 +1,97 @@
 ---
-title: "Nhật ký Tuần 10"
+title: "Week 10 Worklog"
 date: "2025-11-10T09:00:00+07:00"
 weight: 10
 chapter: false
 pre: " <b> 1.10. </b> "
 ---
 
-### Mục tiêu Tuần 10:
-* Triển khai logic nghiệp vụ cốt lõi (Xử lý đơn hàng).
-* Cấu hình Auto Scaling Group (ASG) cho ứng dụng Spring Boot.
+### Week 10 Objectives
+- Implement core business flows on the frontend.
+- Build order creation and checkout UI.
+- Integrate frontend logic with backend order APIs.
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+---
+
+### Tasks
+
+| Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **Launch Template:**<br>- Script cài Java 17 (Corretto) & chạy file Jar. | 10/11/2025 | 10/11/2025 | |
-| 2 | **Tích hợp Secrets:**<br>- Cấu hình app lấy mật khẩu DB từ AWS. | 11/11/2025 | 11/11/2025 | |
-| 3 | **Triển khai ASG:**<br>- Tạo ASG trải dài trên 2 AZs. | 12/11/2025 | 12/11/2025 | |
-| 4 | **Kết nối:**<br>- Gắn ASG vào ALB Target Group. | 13/11/2025 | 13/11/2025 | |
-| 5 | **Kiểm tra:**<br>- Test luồng mua hàng. | 14/11/2025 | 14/11/2025 | |
+| 1 | **State Management:**<br>- Design global state for cart and checkout.<br>- Define cart data models. | 10/11/2025 | 10/11/2025 | |
+| 2 | **Cart Features:**<br>- Add items to cart.<br>- Update quantity and remove items. | 11/11/2025 | 11/11/2025 | |
+| 3 | **Checkout Page:**<br>- Build checkout UI.<br>- Display order summary and pricing. | 12/11/2025 | 12/11/2025 | |
+| 4 | **Order API Integration:**<br>- Call create-order API.<br>- Handle success and failure responses. | 13/11/2025 | 13/11/2025 | |
+| 5 | **Verification:**<br>- Test full purchase flow from product list to order confirmation. | 14/11/2025 | 14/11/2025 | |
 
-### 🧠 Kiến thức mở rộng: Tính toàn vẹn giao dịch (`@Transactional`)
-Trong thương mại điện tử, **Race Conditions** (Điều kiện đua) là rủi ro lớn (ví dụ: 2 người cùng mua 1 chiếc thẻ cuối cùng trong cùng 1 mili-giây).
-Tôi đã giải quyết vấn đề này bằng annotation `@Transactional` trong Spring Boot kết hợp với **Pessimistic Locking** (hàm `findAndLockCards` trong repository). Điều này đảm bảo khi người dùng bắt đầu thanh toán, các mã thẻ cụ thể sẽ bị khóa trong database cho đến khi giao dịch thành công hoặc bị hủy.
+---
 
-### 💻 Backend Code: Logic Xử Lý Đơn Hàng
-Dưới đây là phương thức `createOrder` trong `OrderService.java`. Nó thể hiện cách tôi kiểm tra tồn kho, khóa thẻ và tạo đơn hàng trong một giao dịch nguyên tử (atomic transaction).
+### Extra Knowledge: Managing Client-Side State Consistency
 
-**File:** `OrderService.java`
-```java
-@Transactional // Đảm bảo Atomicity: Tất cả thành công hoặc tất cả thất bại
-public Order createOrder(CreateOrderRequest request) {
-    User user = authenticationService.getCurrentUser();
-    Order order = new Order();
-    order.setUser(user);
-    order.setPayment(request.getPaymentMethod());
-    order.setCreatedAt(LocalDateTime.now());
-    order.setStatus(OrderStatus.PENDING);
+During checkout implementation, I learned that inconsistent client-side state can lead to incorrect orders. To mitigate this:
 
-    List<OrderItem> items = new ArrayList<>();
-    Long total = 0L;
+- Cart state is treated as a single source of truth.
+- Order data sent to backend is derived directly from cart state.
+- UI disables the checkout button while the order request is processing to prevent duplicate submissions.
 
-    for (OrderItemRequest item : request.getOrderItemRequests()) {
-        ProductVariant variant = productVariantsRepository.findById(item.getVariantId())
-                .orElseThrow(() -> new BadRequestException("Variant not found"));
+This ensures the frontend does not introduce race conditions at the user interaction level.
 
-        // Quan trọng: Khóa row trong DB để tránh bán trùng (Race condition)
-        List<Storage> storagesToSell = stockRepository.findAndLockCards(
-                CardStatus.UNUSED,
-                variant.getVariantId(),
-                PageRequest.of(0, item.getQuantity())
-        );
+---
 
-        if (storagesToSell.size() < item.getQuantity()) {
-            throw new BadRequestException("Not enough stock for variant: " + variant.getProduct().getName());
-        }
+### Frontend Implementation: Cart Context
 
-        OrderItem orderItem = new OrderItem();
-        orderItem.setOrder(order);
-        orderItem.setProduct(variant.getProduct());
-        orderItem.setQuantity(item.getQuantity());
-        orderItem.setPrice(variant.getPrice());
+To manage cart state across multiple pages, I implemented a React Context.
 
-        items.add(orderItem);
-        total += variant.getPrice() * item.getQuantity();
+**File:** `CartContext.tsx`
 
-        // Đánh dấu thẻ là PENDING ngay lập tức
-        for (Storage storage : storagesToSell) {
-            storage.setStatus(CardStatus.PENDING_PAYMENT);
-            storage.setOrderItem(orderItem);
-            stockRepository.save(storage);
-        }
-    }
+```script
+import { createContext, useContext, useState } from "react";
 
-    order.setOrderItems(items);
-    order.setTotalAmount(total);
-    return orderRepository.save(order);
+interface CartItem {
+  variantId: number;
+  quantity: number;
+  price: number;
 }
+
+interface CartContextType {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (variantId: number) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextType | null>(null);
+
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const [items, setItems] = useState<CartItem[]>([]);
+
+  const addItem = (item: CartItem) => {
+    setItems((prev) => [...prev, item]);
+  };
+
+  const removeItem = (variantId: number) => {
+    setItems((prev) => prev.filter((i) => i.variantId !== variantId));
+  };
+
+  const clearCart = () => setItems([]);
+
+  return (
+    <CartContext.Provider value={{ items, addItem, removeItem, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
+  }
+  return context;
+};
+```
+
+## Achievements
+* Implemented complete cart and checkout flow on the frontend.
+* Ensured consistent order data sent from client to backend.
+* Integrated order creation API with proper loading and error handling.
+* Completed end-to-end purchase flow testing from UI perspective.

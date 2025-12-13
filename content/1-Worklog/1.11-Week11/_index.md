@@ -6,52 +6,94 @@ chapter: false
 pre: " <b> 1.11. </b> "
 ---
 
-### Week 11 Objectives:
-* Implement Application Security (Spring Security).
-* Optimize delivery with CloudFront and WAF.
+### Week 11 Objectives
+- Implement authentication and authorization on the frontend.
+- Secure API communication using JWT.
+- Optimize frontend delivery and access via CDN.
 
-### Tasks:
+---
+
+### Tasks
+
 | Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **Route 53:**<br>- Alias record to ALB. | 17/11/2025 | 17/11/2025 | |
-| 2 | **CloudFront:**<br>- Distribution setup (CDN). | 18/11/2025 | 18/11/2025 | |
-| 3 | **WAF:**<br>- Attach to CloudFront to block attacks. | 19/11/2025 | 19/11/2025 | |
-| 4 | **Spring Security:**<br>- Implement JWT Filter and AuthenticationManager. | 20/11/2025 | 20/11/2025 | |
-| 5 | **Final Config:**<br>- HTTPS Redirect. | 21/11/2025 | 21/11/2025 | |
+| 1 | **Authentication Flow:**<br>- Design login and logout UI.<br>- Handle credential submission. | 17/11/2025 | 17/11/2025 | |
+| 2 | **JWT Handling:**<br>- Store access token securely.<br>- Attach token to API requests. | 18/11/2025 | 18/11/2025 | |
+| 3 | **Protected Routes:**<br>- Implement role-based route protection.<br>- Redirect unauthorized users. | 19/11/2025 | 19/11/2025 | |
+| 4 | **CDN Integration:**<br>- Prepare frontend build for CloudFront delivery.<br>- Validate asset loading via CDN. | 20/11/2025 | 20/11/2025 | |
+| 5 | **Verification:**<br>- Test login, logout, token expiry, and protected pages. | 21/11/2025 | 21/11/2025 | |
 
-### 🧠 Extra Knowledge: Stateful vs Stateless Auth
-Unlike traditional Session-based authentication (Stateful), I implemented **Stateless Authentication** using JWT (JSON Web Tokens).
-* **How it works:** When a user logs in via `AuthenticationService`, the server validates credentials and issues a signed Token.
-* **Benefit:** The server doesn't need to store session data in RAM. This allows the Auto Scaling Group to scale the application horizontally without worrying about "Sticky Sessions".
+---
 
-### 💻 Backend Code: Secure Authentication Service
-Here is the `login` logic in `AuthenticationService.java`. It relies on Spring Security's `AuthenticationManager` to handle credential validation securely.
+### Extra Knowledge: Stateless Authentication on the Frontend
 
-**File:** `AuthenticationService.java`
-```java
-public AccountResponse login(LoginRequest loginRequest) {
-    try {
-        // 1. Delegate authentication to Spring Security Manager
-        // This checks the username/password against the DB (encrypted)
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-        ));
-    } catch (BadRequestException e) {
-        throw new BadRequestException("Invalid username or password");
-    }
+While implementing JWT-based authentication, I learned that frontend applications must remain stateless. The React application does not manage sessions; instead:
 
-    // 2. If valid, retrieve user details
-    User user = authenticationRepository.findUserByUsername(loginRequest.getUsername());
-    Member profile = memberRepository.findMemberByUser(user);
-    
-    // 3. Generate JWT Token
-    String token = tokenService.generateToken(user);
-    
-    AccountResponse response = new AccountResponse();
-    response.setUsername(user.getUsername());
-    response.setRole(user.getRole());
-    response.setAddress(profile.getAddress());
-    response.setToken(token); // Send token back to client
-    return response;
+- The backend issues a signed JWT after successful login.
+- The frontend stores the token and sends it with each request.
+- Any backend instance can validate the token independently.
+
+This approach aligns with scalable architectures behind load balancers and avoids dependency on sticky sessions.
+
+---
+
+### Frontend Implementation: Auth Context
+
+To centralize authentication logic, I implemented an authentication context.
+
+**File:** `AuthContext.tsx`
+
+```tsx
+import { createContext, useContext, useState } from "react";
+import apiClient from "../api/apiClient";
+
+interface AuthContextType {
+  token: string | null;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
 }
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("access_token")
+  );
+
+  const login = async (username: string, password: string) => {
+    const response = await apiClient.post("/auth/login", {
+      username,
+      password,
+    });
+
+    const accessToken = response.data.token;
+    setToken(accessToken);
+    localStorage.setItem("access_token", accessToken);
+  };
+
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem("access_token");
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};
+```
+
+## Achievements
+* Implemented secure login and logout functionality in the frontend.
+* Protected routes based on authentication and user roles.
+* Integrated JWT into API requests without relying on session state.
+* Verified frontend compatibility with CDN-based delivery.

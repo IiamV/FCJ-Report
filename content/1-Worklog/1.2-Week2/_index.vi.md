@@ -1,56 +1,46 @@
 ---
-title: "Nhật ký Tuần 2"
+title: "Nhật ký công việc Tuần 2"
 date: "2025-09-15T09:00:00+07:00"
 weight: 2
 chapter: false
 pre: " <b> 1.2. </b> "
 ---
 
-### Mục tiêu Tuần 2:
-* Nắm vững các kiến thức cơ bản về Mạng trên AWS (Networking).
-* Hiểu cách cô lập tài nguyên bằng VPC và Subnet.
-* Kiểm soát luồng traffic bằng Route Table và Security Group.
+### Mục tiêu Tuần 2
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
-| --- | --- | --- | --- | --- |
-| 1 | **VPC & Subnets:**<br>- Học về CIDR block.<br>- Phân biệt Default VPC và Custom VPC.<br>- Sự khác nhau giữa Public và Private Subnet. | 15/09/2025 | 15/09/2025 | [AWS VPC Docs](https://docs.aws.amazon.com/vpc/) |
-| 2 | **Kết nối:**<br>- Thiết lập Internet Gateway (IGW).<br>- Route Tables (Bảng định tuyến chính vs tùy chỉnh).<br>- Gán Subnet vào Route Table. | 16/09/2025 | 16/09/2025 | |
-| 3 | **Bảo mật:**<br>- **Security Groups** (Stateful) vs **NACLs** (Stateless).<br>- Tạo Security Group chỉ cho phép SSH (22) và HTTP (80) từ IP của tôi. | 17/09/2025 | 17/09/2025 | |
-| 4 | **Thực hành Lab:**<br>- Tạo một VPC tùy chỉnh.<br>- Tạo 1 Public Subnet và gắn IGW.<br>- Thử ping tới instance. | 18/09/2025 | 18/09/2025 | |
-| 5 | **Ôn tập:**<br>- Kiểm chứng lại hiểu biết về "Public" (có đường ra IGW) và "Private" (không có đường ra IGW). | 19/09/2025 | 19/09/2025 | |
+- Củng cố hiểu biết về các dịch vụ cốt lõi của AWS thông qua thực hành liên tục.  
+- Nâng cao kinh nghiệm thực hành với Amazon EC2 và các tài nguyên liên quan.  
+- Cải thiện khả năng làm việc kết hợp giữa AWS CLI và Console.  
+- Hiểu các khái niệm mạng cơ bản liên quan đến kết nối EC2.
 
-### Thành tựu đạt được:
-* Đã tạo thành công VPC tùy chỉnh với các subn---
-title: "Nhật ký Tuần 2"
-date: "2025-09-15T09:00:00+07:00"
-weight: 2
-chapter: false
-pre: " <b> 1.2. </b> "
 ---
 
-### Mục tiêu Tuần 2:
-* Nắm vững các kiến thức cơ bản về Mạng trên AWS (Networking).
-* Hiểu cách cô lập tài nguyên bằng VPC và Subnet.
-* Kiểm soát luồng traffic bằng Route Table và Security Group.
+### Công việc thực hiện trong tuần này
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
-| --- | --- | --- | --- | --- |
-| 1 | **VPC & Subnets:**<br>- Học về CIDR block.<br>- Phân biệt Default VPC và Custom VPC.<br>- Sự khác nhau giữa Public và Private Subnet. | 15/09/2025 | 15/09/2025 | [AWS VPC Docs](https://docs.aws.amazon.com/vpc/) |
-| 2 | **Kết nối:**<br>- Thiết lập Internet Gateway (IGW).<br>- Route Tables (Bảng định tuyến chính vs tùy chỉnh).<br>- Gán Subnet vào Route Table. | 16/09/2025 | 16/09/2025 | |
-| 3 | **Bảo mật:**<br>- **Security Groups** (Stateful) vs **NACLs** (Stateless).<br>- Tạo Security Group chỉ cho phép SSH (22) và HTTP (80) từ IP của tôi. | 17/09/2025 | 17/09/2025 | |
-| 4 | **Thực hành Lab:**<br>- Tạo một VPC tùy chỉnh.<br>- Tạo 1 Public Subnet và gắn IGW.<br>- Thử ping tới instance. | 18/09/2025 | 18/09/2025 | |
-| 5 | **Ôn tập:**<br>- Kiểm chứng lại hiểu biết về "Public" (có đường ra IGW) và "Private" (không có đường ra IGW). | 19/09/2025 | 19/09/2025 | |
+| Ngày | Công việc | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | - Ôn lại các nhóm dịch vụ AWS: <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br> - Làm rõ các trường hợp sử dụng thực tế cho từng nhóm dịch vụ | 08/18/2025 | 08/18/2025 | https://cloudjourney.awsstudygroup.com/ |
+| 2 | - Tiếp tục làm việc với AWS Management Console <br> - Điều hướng trên dashboard EC2, VPC và S3 <br> - Quan sát mối quan hệ giữa các tài nguyên của dịch vụ | 08/19/2025 | 08/19/2025 | |
+| 3 | - Tìm hiểu EC2 chi tiết hơn: <br>&emsp; + Vòng đời instance (start, stop, terminate) <br>&emsp; + So sánh các loại instance <br>&emsp; + Lựa chọn AMI | 08/20/2025 | 08/20/2025 | https://cloudjourney.awsstudygroup.com/ |
+| 4 | - Học về các tùy chọn lưu trữ EC2: <br>&emsp; + Root vs. các volume EBS bổ sung <br>&emsp; + Các loại volume và trường hợp sử dụng <br> - Tìm hiểu các trường hợp sử dụng Elastic IP | 08/21/2025 | 08/21/2025 | |
+| 5 | - Thực hành quản lý EC2: <br>&emsp; + Khởi chạy EC2 từ Console <br>&emsp; + Kết nối qua SSH <br>&emsp; + Start, stop và terminate instances <br>&emsp; + Gắn và tháo volume EBS | 08/22/2025 | 08/22/2025 | https://cloudjourney.awsstudygroup.com/ |
 
-### 🧠 Kiến thức mở rộng: Tính chất "Stateful" của Security Group
-Trong quá trình cấu hình tường lửa hôm nay, tôi đã nhận ra một điểm quan trọng:
-* **Security Group là Stateful:** Nếu tôi cho phép traffic đi vào (Inbound) ở cổng 80, thì traffic phản hồi đi ra (Outbound) sẽ tự động được cho phép.
-* **NACL là Stateless:** Tôi bắt buộc phải mở rule ở **cả hai chiều** (Vào và Ra). Đây là lý do tại sao lúc đầu tôi dùng NACL chặn IP nhưng lại vô tình chặn luôn cả gói tin phản hồi của server!
+---
 
-### Thành tựu đạt được:
-* Đã tạo thành công VPC tùy chỉnh với các subnet được phân chia logic (CIDR /16 và /24).
-* Cấu hình Internet Gateway và Route Table hoạt động tốt.
-* Xác minh bảo mật mạng bằng cách sử dụng Security Group hạn chế quyền truy cập.et được phân chia logic.
-* Cấu hình Internet Gateway và Route Table hoạt động tốt.
-* Xác minh bảo mật mạng bằng cách sử dụng Security Group hạn chế quyền truy cập.
+### Thành tựu Tuần 2
+
+- Củng cố hiểu biết về các nhóm dịch vụ cốt lõi của AWS và cách chúng hoạt động cùng nhau trong các hệ thống thực tế.  
+- Tăng sự tự tin khi điều hướng AWS Management Console và xác định các tài nguyên liên quan giữa các dịch vụ.  
+- Nắm vững kiến thức sâu hơn về Amazon EC2, bao gồm:
+  - Quản lý vòng đời instance  
+  - Lựa chọn loại instance và AMI  
+  - Sử dụng Elastic IP  
+
+- Thực hành quản lý các EC2 instance thông qua lab thực hành:
+  - Thành công khởi chạy và truy cập EC2 thông qua SSH  
+  - Gắn và quản lý các volume EBS  
+  - Quan sát cách lưu trữ tồn tại độc lập với vòng đời instance  
+
+- Cải thiện khả năng chuyển đổi giữa **AWS Console và AWS CLI** khi quản lý tài nguyên cloud, củng cố kỹ năng vận hành thực tế trên AWS.
+
+---

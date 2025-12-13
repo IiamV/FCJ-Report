@@ -6,22 +6,46 @@ chapter: false
 pre: " <b> 1.7. </b> "
 ---
 
-### Week 7 Objectives:
-* Secure private network outbound traffic.
-* Manage secrets and WAF.
+### Week 7 Objectives
 
-### Tasks:
+- Secure outbound network access for private resources.
+- Learn how to manage application secrets securely.
+- Understand basic application-layer protection using AWS WAF.
+- Apply security best practices to cloud architectures.
+
+---
+
+### Tasks Carried Out This Week
+
 | Day | Task | Start Date | Completion Date | Reference Material |
-| --- | --- | --- | --- | --- |
-| 1 | **NAT Gateway:**<br>- Allow Private Subnet internet access. | 20/10/2025 | 20/10/2025 | |
-| 2 | **Secrets Manager:**<br>- Storing DB passwords.<br>- Rotation. | 21/10/2025 | 21/10/2025 | |
-| 3 | **WAF:**<br>- Basic SQL injection protection. | 22/10/2025 | 22/10/2025 | |
-| 4 | **Practice:**<br>- Create NAT Gateway.<br>- Verify Private EC2 internet access. | 23/10/2025 | 23/10/2025 | |
-| 5 | **Review:**<br>- Cost analysis of NAT. | 24/10/2025 | 24/10/2025 | |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **NAT Gateway Concepts:**<br>- Understand why private subnets need outbound internet access.<br>- Learn NAT Gateway architecture and routing. | 20/10/2025 | 20/10/2025 | |
+| 2 | **AWS Secrets Manager:**<br>- Store database credentials securely.<br>- Learn secret rotation concepts and access control. | 21/10/2025 | 21/10/2025 | |
+| 3 | **AWS WAF Basics:**<br>- Understand Web Application Firewall use cases.<br>- Learn about common protections such as SQL injection filtering. | 22/10/2025 | 22/10/2025 | |
+| 4 | **Practice Lab:**<br>- Create and configure a NAT Gateway.<br>- Update Route Tables to enable private subnet internet access.<br>- Verify outbound connectivity from private EC2 instances. | 23/10/2025 | 23/10/2025 | |
+| 5 | **Review & Cost Awareness:**<br>- Review NAT Gateway pricing model.<br>- Analyze cost implications for long-running environments. | 24/10/2025 | 24/10/2025 | |
 
-### 🧠 Extra Knowledge: The Cost of NAT Gateways
-While implementing NAT Gateway, I learned it's one of the "hidden costs" in AWS. It charges not just for hourly usage (~$0.045/hr) but also for **Data Processing** ($0.045/GB). For the Game Card project, downloading heavy updates on private servers could be expensive. In the future, I might consider **VPC Endpoints** for accessing AWS services (like S3/DynamoDB) to avoid NAT processing fees.
+---
 
-### Achievements:
-* Enabled secure outbound internet using NAT Gateway (private instances can update OS but cannot be reached from outside).
-* Secured DB credentials with AWS Secrets Manager instead of hardcoding.
+### Extra Knowledge: Securing Private Subnet Traffic
+
+This week highlighted the importance of **controlled outbound access**:
+
+- Private instances should not be directly reachable from the Internet.
+- NAT Gateway allows outbound connectivity while maintaining inbound isolation.
+- Security services like Secrets Manager and WAF reduce risks related to credential leakage and web-based attacks.
+
+These patterns are critical for building secure production-grade systems.
+
+---
+
+### Week 7 Achievements
+
+- Successfully enabled outbound internet access for private subnet resources using NAT Gateway.
+- Verified that private EC2 instances could access external resources without being publicly exposed.
+- Stored sensitive credentials securely using AWS Secrets Manager instead of hardcoding them.
+- Applied basic Web Application Firewall rules to protect web-facing components.
+- Improved overall understanding of security and cost trade-offs in AWS architectures.
+
+---
+

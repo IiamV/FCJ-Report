@@ -6,26 +6,42 @@ chapter: false
 pre: " <b> 1.2. </b> "
 ---
 
-### Week 2 Objectives:
-* Master AWS Networking fundamentals.
-* Understand how to isolate resources using VPCs and Subnets.
-* Control traffic flow with Route Tables and Security Groups.
+### Week 2 Objectives
 
-### Tasks:
+- Reinforce understanding of core AWS services through continued practice.
+- Deepen hands-on experience with Amazon EC2 and related resources.
+- Improve familiarity with AWS CLI and Console working together.
+- Understand basic networking concepts related to EC2 connectivity.
+
+---
+
+### Tasks Carried Out This Week
+
 | Day | Task | Start Date | Completion Date | Reference Material |
-| --- | --- | --- | --- | --- |
-| 1 | **VPC & Subnets:**<br>- Learn CIDR notation.<br>- Understand Default vs. Custom VPC.<br>- Public vs. Private Subnets difference. | 15/09/2025 | 15/09/2025 | [AWS VPC Docs](https://docs.aws.amazon.com/vpc/) |
-| 2 | **Connectivity:**<br>- Internet Gateway (IGW) setup.<br>- Route Tables (Main vs. Custom).<br>- Associating Subnets with Route Tables. | 16/09/2025 | 16/09/2025 | |
-| 3 | **Security:**<br>- **Security Groups** (Stateful) vs. **NACLs** (Stateless).<br>- Create a Security Group allowing SSH (22) and HTTP (80) only from my IP. | 17/09/2025 | 17/09/2025 | |
-| 4 | **Practice Lab:**<br>- Create a custom VPC.<br>- Create 1 Public Subnet and attach an IGW.<br>- Attempt to ping an instance. | 18/09/2025 | 18/09/2025 | |
-| 5 | **Review:**<br>- Validate understanding of "Public" (has IGW route) vs "Private" (no IGW route). | 19/09/2025 | 19/09/2025 | |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | - Review AWS service categories: <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br> - Clarify real-world use cases for each service group | 08/18/2025 | 08/18/2025 | https://cloudjourney.awsstudygroup.com/ |
+| 2 | - Continue working with AWS Management Console <br> - Navigate EC2, VPC, and S3 dashboards <br> - Observe resource relationships between services | 08/19/2025 | 08/19/2025 | |
+| 3 | - Learn EC2 in more detail: <br>&emsp; + Instance lifecycle (start, stop, terminate) <br>&emsp; + Instance types comparison <br>&emsp; + AMI selection | 08/20/2025 | 08/20/2025 | https://cloudjourney.awsstudygroup.com/ |
+| 4 | - Study EC2 storage options: <br>&emsp; + Root vs. additional EBS volumes <br>&emsp; + Volume types and use cases <br> - Learn Elastic IP use cases | 08/21/2025 | 08/21/2025 | |
+| 5 | - Practice EC2 management: <br>&emsp; + Launch EC2 instances from Console <br>&emsp; + Connect using SSH <br>&emsp; + Start, stop, and terminate instances <br>&emsp; + Attach and detach EBS volumes | 08/22/2025 | 08/22/2025 | https://cloudjourney.awsstudygroup.com/ |
 
-### 🧠 Extra Knowledge: The "Stateful" Nature of Security Groups
-While configuring the Security Group today, I learned an important distinction:
-* **Security Groups are Stateful:** If I allow an *inbound* request on port 80, the response (outbound) is automatically allowed, regardless of outbound rules.
-* **NACLs are Stateless:** I must explicitly allow traffic in *both* directions (Inbound and Outbound), otherwise the response packet gets dropped. This explains why my ping failed when I used NACLs but forgot the outbound rule!
+---
 
-### Achievements:
-* Successfully created a custom VPC with logically divided subnets (CIDR /16 and /24).
-* Configured a functioning Internet Gateway and Route Table.
-* Verified network security using restricted Security Groups.
+### Week 2 Achievements
+
+- Strengthened understanding of AWS core service categories and how they work together in real systems.
+- Gained confidence navigating the AWS Management Console and locating related resources across services.
+- Developed deeper knowledge of Amazon EC2, including:
+  - Instance lifecycle management  
+  - Instance types and AMI selection  
+  - Elastic IP usage  
+
+- Practiced managing EC2 instances through hands-on labs:
+  - Successfully launched and accessed EC2 instances via SSH  
+  - Attached and managed EBS volumes  
+  - Observed how storage persists independently of instance lifecycle  
+
+- Improved ability to switch between **AWS Console and AWS CLI** when managing cloud resources, reinforcing practical cloud operation skills.
+
+---
+

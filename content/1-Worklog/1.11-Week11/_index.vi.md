@@ -1,57 +1,99 @@
 ---
-title: "Nhật ký Tuần 11"
+title: "Week 11 Worklog"
 date: "2025-11-17T09:00:00+07:00"
 weight: 11
 chapter: false
 pre: " <b> 1.11. </b> "
 ---
 
-### Mục tiêu Tuần 11:
-* Triển khai Bảo mật ứng dụng (Spring Security).
-* Tối ưu hóa phân phối với CloudFront và WAF.
+### Week 11 Objectives
+- Implement authentication and authorization on the frontend.
+- Secure API communication using JWT.
+- Optimize frontend delivery and access via CDN.
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+---
+
+### Tasks
+
+| Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **Route 53:**<br>- Bản ghi Alias trỏ về ALB. | 17/11/2025 | 17/11/2025 | |
-| 2 | **CloudFront:**<br>- Thiết lập Distribution (CDN). | 18/11/2025 | 18/11/2025 | |
-| 3 | **WAF:**<br>- Gắn vào CloudFront để chặn tấn công. | 19/11/2025 | 19/11/2025 | |
-| 4 | **Spring Security:**<br>- Cấu hình JWT Filter và AuthenticationManager. | 20/11/2025 | 20/11/2025 | |
-| 5 | **Cấu hình cuối:**<br>- Chuyển hướng HTTPS. | 21/11/2025 | 21/11/2025 | |
+| 1 | **Authentication Flow:**<br>- Design login and logout UI.<br>- Handle credential submission. | 17/11/2025 | 17/11/2025 | |
+| 2 | **JWT Handling:**<br>- Store access token securely.<br>- Attach token to API requests. | 18/11/2025 | 18/11/2025 | |
+| 3 | **Protected Routes:**<br>- Implement role-based route protection.<br>- Redirect unauthorized users. | 19/11/2025 | 19/11/2025 | |
+| 4 | **CDN Integration:**<br>- Prepare frontend build for CloudFront delivery.<br>- Validate asset loading via CDN. | 20/11/2025 | 20/11/2025 | |
+| 5 | **Verification:**<br>- Test login, logout, token expiry, and protected pages. | 21/11/2025 | 21/11/2025 | |
 
-### 🧠 Kiến thức mở rộng: Stateful vs Stateless Auth
-Khác với xác thực dựa trên Session truyền thống (Stateful), tôi đã triển khai **Xác thực phi trạng thái (Stateless)** sử dụng JWT.
-* **Cơ chế:** Khi người dùng đăng nhập qua `AuthenticationService`, server xác thực và cấp một Token có chữ ký số.
-* **Lợi ích:** Server không cần lưu dữ liệu session trong RAM. Điều này cho phép Auto Scaling Group mở rộng ứng dụng theo chiều ngang thoải mái mà không lo về vấn đề "Sticky Sessions".
+---
 
-### 💻 Backend Code: Dịch vụ Xác thực An toàn
-Dưới đây là logic `login` trong `AuthenticationService.java`. Nó ủy quyền việc kiểm tra mật khẩu cho `AuthenticationManager` của Spring Security để đảm bảo an toàn.
+### Extra Knowledge: Stateless Authentication on the Frontend
 
-**File:** `AuthenticationService.java`
-```java
-public AccountResponse login(LoginRequest loginRequest) {
-    try {
-        // 1. Ủy quyền xác thực cho Spring Security Manager
-        // Bước này sẽ kiểm tra username/password với DB (đã mã hóa BCrypt)
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-        ));
-    } catch (BadRequestException e) {
-        throw new BadRequestException("Invalid username or password");
-    }
+While implementing JWT-based authentication, I learned that frontend applications must remain stateless. The React application does not manage sessions; instead:
 
-    // 2. Nếu hợp lệ, lấy thông tin user
-    User user = authenticationRepository.findUserByUsername(loginRequest.getUsername());
-    Member profile = memberRepository.findMemberByUser(user);
-    
-    // 3. Sinh JWT Token
-    String token = tokenService.generateToken(user);
-    
-    AccountResponse response = new AccountResponse();
-    response.setUsername(user.getUsername());
-    response.setRole(user.getRole());
-    response.setAddress(profile.getAddress());
-    response.setToken(token); // Trả Token về cho Client
-    return response;
+- The backend issues a signed JWT after successful login.
+- The frontend stores the token and sends it with each request.
+- Any backend instance can validate the token independently.
+
+This approach aligns with scalable architectures behind load balancers and avoids dependency on sticky sessions.
+
+---
+
+### Frontend Implementation: Auth Context
+
+To centralize authentication logic, I implemented an authentication context.
+
+**File:** `AuthContext.tsx`
+
+```script
+import { createContext, useContext, useState } from "react";
+import apiClient from "../api/apiClient";
+
+interface AuthContextType {
+  token: string | null;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
 }
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("access_token")
+  );
+
+  const login = async (username: string, password: string) => {
+    const response = await apiClient.post("/auth/login", {
+      username,
+      password,
+    });
+
+    const accessToken = response.data.token;
+    setToken(accessToken);
+    localStorage.setItem("access_token", accessToken);
+  };
+
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem("access_token");
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};
+```
+
+## Achievements
+* Implemented secure login and logout functionality in the frontend.
+* Protected routes based on authentication and user roles.
+* Integrated JWT into API requests without relying on session state.
+* Verified frontend compatibility with CDN-based delivery.

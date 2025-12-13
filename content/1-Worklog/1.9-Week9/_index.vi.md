@@ -1,60 +1,68 @@
 ---
-title: "Nhật ký Tuần 9"
+title: "Week 9 Worklog"
 date: "2025-11-03T09:00:00+07:00"
 weight: 9
 chapter: false
 pre: " <b> 1.9. </b> "
 ---
 
-### Mục tiêu Tuần 9:
-* Xây dựng hạ tầng cốt lõi theo thiết kế dự án Bán Thẻ Game.
-* Thiết lập dự án **Spring Boot** và kết nối Cơ sở dữ liệu.
+### Week 9 Objectives
+- Set up the frontend foundation for the Game Card Platform.
+- Initialize the React project and define application structure.
+- Integrate frontend with backend APIs.
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+---
+
+### Tasks
+
+| Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **Xây dựng VPC:**<br>- VPC, 2 Public Subnet, 2 Private Subnet. | 03/11/2025 | 03/11/2025 | |
-| 2 | **Cổng kết nối:**<br>- Triển khai IGW và 2 NAT Gateway (Sẵn sàng cao). | 04/11/2025 | 04/11/2025 | |
-| 3 | **Cơ sở dữ liệu:**<br>- Khởi chạy RDS MySQL (Multi-AZ). | 05/11/2025 | 05/11/2025 | |
-| 4 | **Backend Setup:**<br>- Khởi tạo Spring Boot project.<br>- Cấu hình JPA & Hibernate. | 06/11/2025 | 06/11/2025 | |
-| 5 | **Kiểm tra:**<br>- Kiểm tra kết nối từ EC2 (Spring Boot) sang RDS. | 07/11/2025 | 07/11/2025 | |
+| 1 | **Project Initialization:**<br>- Create React project.<br>- Configure folder structure (components, pages, services). | 03/11/2025 | 03/11/2025 | |
+| 2 | **Routing Setup:**<br>- Configure React Router.<br>- Define public and protected routes. | 04/11/2025 | 04/11/2025 | |
+| 3 | **API Integration:**<br>- Configure Axios instance.<br>- Connect to backend product APIs. | 05/11/2025 | 05/11/2025 | |
+| 4 | **UI Development:**<br>- Build product listing page.<br>- Implement reusable UI components. | 06/11/2025 | 06/11/2025 | |
+| 5 | **Verification:**<br>- Validate API data rendering.<br>- Handle loading and error states. | 07/11/2025 | 07/11/2025 | |
 
-### 🧠 Kiến thức mở rộng: JPA Specifications
-Trong phần logic Backend, thay vì viết các câu lệnh SQL thô khó bảo trì, tôi đã sử dụng **Spring Data JPA Specifications**. Kỹ thuật này cho phép tôi xây dựng các truy vấn động (ví dụ: lọc sản phẩm theo tên, nhà mạng VÀ khoảng giá cùng lúc) một cách an toàn và hướng đối tượng.
+---
 
-### 💻 Backend Code: Tìm kiếm Sản phẩm Động
-Dưới đây là cách tôi triển khai logic tìm kiếm nâng cao trong `ProductService.java` sử dụng `Specification` và `CriteriaBuilder`.
+### Extra Knowledge: Frontend–Backend Separation
 
-**File:** `ProductService.java`
-```java
-public Page<ProductResponse> searchProductsPublic(String keyword, String branchName, Long minPrice, Long maxPrice, Pageable pageable) {
-    Specification<Product> spec = (root, query, cb) -> {
-        List<Predicate> predicates = new ArrayList<>();
+During this week, I reinforced the importance of separating frontend and backend responsibilities. The React application communicates with the backend exclusively via REST APIs, ensuring:
 
-        // Tìm theo tên (Không phân biệt hoa thường)
-        if (StringUtils.hasText(keyword)) {
-            predicates.add(cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%"));
-        }
+- Loose coupling between UI and business logic
+- Independent deployment of frontend and backend
+- Easier scaling and maintenance
 
-        // Lọc theo Nhà mạng (Branch)
-        if (StringUtils.hasText(branchName)) {
-            predicates.add(cb.equal(root.get("branch").get("name"), branchName));
-        }
+This architecture supports future migration to CDN-based hosting (e.g., S3 + CloudFront).
 
-        // Lọc theo khoảng giá (Join bảng Variants)
-        if (minPrice != null || maxPrice != null) {
-            var variantJoin = root.join("variant");
-            if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(variantJoin.get("price"), minPrice));
-            }
-            if (maxPrice != null) {
-                predicates.add(cb.lessThanOrEqualTo(variantJoin.get("price"), maxPrice));
-            }
-            query.distinct(true); // Tránh trùng lặp sản phẩm
-        }
+---
 
-        return cb.and(predicates.toArray(new Predicate[0]));
-    };
+### Frontend Implementation: Axios Service Layer
 
-    return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
-}
+To avoid duplicating API logic across components, I implemented a centralized Axios service.
+
+**File:** `apiClient.ts`
+
+```script
+import axios from "axios";
+
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 10000,
+});
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
+
+export default apiClient;
+```
+
+## Achievements
+
+* Successfully initialized and structured the React frontend project.
+* Implemented routing and page navigation using React Router.
+* Integrated backend APIs using a centralized Axios configuration.
+* Rendered dynamic data from the backend in frontend components.
+* Established a scalable frontend architecture for future feature expansion.

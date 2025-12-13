@@ -6,73 +6,92 @@ chapter: false
 pre: " <b> 1.10. </b> "
 ---
 
-### Week 10 Objectives:
-* Deploy the core business logic (Order Processing).
-* Configure Auto Scaling Group (ASG) for the Spring Boot application.
+### Week 10 Objectives
+- Implement core business flows on the frontend.
+- Build order creation and checkout UI.
+- Integrate frontend logic with backend order APIs.
 
-### Tasks:
+---
+
+### Tasks
+
 | Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **Launch Template:**<br>- Script to install Java 17 (Corretto) & Run Jar file. | 10/11/2025 | 10/11/2025 | |
-| 2 | **Secrets Integration:**<br>- App config to fetch DB password. | 11/11/2025 | 11/11/2025 | |
-| 3 | **ASG Deployment:**<br>- Create ASG spanning 2 AZs. | 12/11/2025 | 12/11/2025 | |
-| 4 | **Connection:**<br>- Attach ASG to ALB Target Group. | 13/11/2025 | 13/11/2025 | |
-| 5 | **Verification:**<br>- Test Purchase Flow. | 14/11/2025 | 14/11/2025 | |
+| 1 | **State Management:**<br>- Design global state for cart and checkout.<br>- Define cart data models. | 10/11/2025 | 10/11/2025 | |
+| 2 | **Cart Features:**<br>- Add items to cart.<br>- Update quantity and remove items. | 11/11/2025 | 11/11/2025 | |
+| 3 | **Checkout Page:**<br>- Build checkout UI.<br>- Display order summary and pricing. | 12/11/2025 | 12/11/2025 | |
+| 4 | **Order API Integration:**<br>- Call create-order API.<br>- Handle success and failure responses. | 13/11/2025 | 13/11/2025 | |
+| 5 | **Verification:**<br>- Test full purchase flow from product list to order confirmation. | 14/11/2025 | 14/11/2025 | |
 
-### 🧠 Extra Knowledge: Transactional Integrity (`@Transactional`)
-In e-commerce, **Race Conditions** are a major risk (e.g., two users buying the last card at the exact same millisecond).
-I addressed this by using the `@Transactional` annotation in Spring Boot combined with **Pessimistic Locking** (`findAndLockCards` in repository). This ensures that once a user starts the checkout process, the specific card codes are locked in the database until the transaction commits or rolls back.
+---
 
-### 💻 Backend Code: Order Processing Logic
-Below is the `createOrder` method in `OrderService.java`. It demonstrates how I verify stock, lock the items, and create the order in a single atomic transaction.
+### Extra Knowledge: Managing Client-Side State Consistency
 
-**File:** `OrderService.java`
-```java
-@Transactional // Ensures Atomicity: All succeed or all fail
-public Order createOrder(CreateOrderRequest request) {
-    User user = authenticationService.getCurrentUser();
-    Order order = new Order();
-    order.setUser(user);
-    order.setPayment(request.getPaymentMethod());
-    order.setCreatedAt(LocalDateTime.now());
-    order.setStatus(OrderStatus.PENDING);
+During checkout implementation, I learned that inconsistent client-side state can lead to incorrect orders. To mitigate this:
 
-    List<OrderItem> items = new ArrayList<>();
-    Long total = 0L;
+- Cart state is treated as a single source of truth.
+- Order data sent to backend is derived directly from cart state.
+- UI disables the checkout button while the order request is processing to prevent duplicate submissions.
 
-    for (OrderItemRequest item : request.getOrderItemRequests()) {
-        ProductVariant variant = productVariantsRepository.findById(item.getVariantId())
-                .orElseThrow(() -> new BadRequestException("Variant not found"));
+This ensures the frontend does not introduce race conditions at the user interaction level.
 
-        // Critical: Lock stock to prevent race conditions
-        List<Storage> storagesToSell = stockRepository.findAndLockCards(
-                CardStatus.UNUSED,
-                variant.getVariantId(),
-                PageRequest.of(0, item.getQuantity())
-        );
+---
 
-        if (storagesToSell.size() < item.getQuantity()) {
-            throw new BadRequestException("Not enough stock for variant: " + variant.getProduct().getName());
-        }
+### Frontend Implementation: Cart Context
 
-        OrderItem orderItem = new OrderItem();
-        orderItem.setOrder(order);
-        orderItem.setProduct(variant.getProduct());
-        orderItem.setQuantity(item.getQuantity());
-        orderItem.setPrice(variant.getPrice());
+To manage cart state across multiple pages, I implemented a React Context.
 
-        items.add(orderItem);
-        total += variant.getPrice() * item.getQuantity();
+**File:** `CartContext.tsx`
 
-        // Mark cards as PENDING immediately
-        for (Storage storage : storagesToSell) {
-            storage.setStatus(CardStatus.PENDING_PAYMENT);
-            storage.setOrderItem(orderItem);
-            stockRepository.save(storage);
-        }
-    }
+```tsx
+import { createContext, useContext, useState } from "react";
 
-    order.setOrderItems(items);
-    order.setTotalAmount(total);
-    return orderRepository.save(order);
+interface CartItem {
+  variantId: number;
+  quantity: number;
+  price: number;
 }
+
+interface CartContextType {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (variantId: number) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextType | null>(null);
+
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const [items, setItems] = useState<CartItem[]>([]);
+
+  const addItem = (item: CartItem) => {
+    setItems((prev) => [...prev, item]);
+  };
+
+  const removeItem = (variantId: number) => {
+    setItems((prev) => prev.filter((i) => i.variantId !== variantId));
+  };
+
+  const clearCart = () => setItems([]);
+
+  return (
+    <CartContext.Provider value={{ items, addItem, removeItem, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
+  }
+  return context;
+};
+```
+
+## Achievements
+* Implemented complete cart and checkout flow on the frontend.
+* Ensured consistent order data sent from client to backend.
+* Integrated order creation API with proper loading and error handling.
+* Completed end-to-end purchase flow testing from UI perspective.

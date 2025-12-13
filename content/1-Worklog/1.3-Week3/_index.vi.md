@@ -1,28 +1,50 @@
 ---
-title: "Nhật ký Tuần 3"
+title: "Nhật ký công việc Tuần 3"
 date: "2025-09-22T09:00:00+07:00"
 weight: 3
 chapter: false
 pre: " <b> 1.3. </b> "
 ---
 
-### Mục tiêu Tuần 3:
-* Hiểu các dịch vụ cốt lõi về Tính toán (EC2) và Lưu trữ (EBS, S3).
-* Học cách quản lý tính bền vững của dữ liệu.
+### Mục tiêu Tuần 3
 
-### Nhiệm vụ trong tuần:
-| Ngày | Nhiệm vụ | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
-| --- | --- | --- | --- | --- |
-| 1 | **Chuyên sâu EC2:**<br>- Các loại Instance (T3, M5...).<br>- Lựa chọn AMI.<br>- Key Pairs & kịch bản User Data. | 22/09/2025 | 22/09/2025 | [AWS EC2 Docs](https://docs.aws.amazon.com/ec2/) |
-| 2 | **EBS (Block Storage):**<br>- Các loại Volume (gp3, io2).<br>- Gắn/Gỡ volume.<br>- Snapshot & Lifecycle Manager. | 23/09/2025 | 23/09/2025 | |
-| 3 | **S3 (Object Storage):**<br>- Buckets & Objects.<br>- Các lớp lưu trữ (Standard, IA, Glacier).<br>- Versioning & Bucket Policies. | 24/09/2025 | 24/09/2025 | |
-| 4 | **Thực hành Lab:**<br>- Khởi chạy EC2 dùng User Data cài Apache.<br>- Tạo S3 bucket host file `index.html`. | 25/09/2025 | 25/09/2025 | |
-| 5 | **Ôn tập:**<br>- Phân biệt khi nào dùng EBS so với S3. | 26/09/2025 | 26/09/2025 | |
+- Củng cố hiểu biết về các dịch vụ cốt lõi Compute và Storage của AWS.  
+- Tìm hiểu cách dữ liệu được lưu trữ và duy trì trên AWS.  
+- Thực hành triển khai các workload đơn giản sử dụng EC2 và S3.  
+- Hiểu các lựa chọn lưu trữ phù hợp cho từng trường hợp sử dụng ứng dụng.
 
-### 🧠 Kiến thức mở rộng: Instance Store vs EBS
-Tôi phát hiện ra một số loại EC2 đi kèm với "Instance Store" (Lưu trữ tạm thời). Ổ cứng này gắn trực tiếp vật lý vào máy chủ nên tốc độ rất nhanh. **Tuy nhiên**, nếu tôi Stop hoặc Terminate máy ảo, **mọi dữ liệu trên Instance Store sẽ mất sạch**. Đó là lý do tại sao với Database cho dự án sắp tới, tôi bắt buộc phải dùng **EBS** vì dữ liệu trên EBS tồn tại độc lập với vòng đời của EC2.
+---
 
-### Thành tựu đạt được:
-* Đã khởi chạy web server sử dụng kỹ thuật User Data bootstrapping (tự động cài Apache).
-* Quản lý lưu trữ bền vững với EBS volume và thực hành khôi phục dữ liệu từ Snapshot.
-* Hiểu rõ sự khác biệt giữa lưu trữ dạng Block (EBS) và dạng Object (S3).
+### Công việc thực hiện trong tuần này
+
+| Ngày | Công việc | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **Kiến thức cơ bản EC2 (Nghiên cứu chuyên sâu):**<br>- Ôn lại các nhóm instance EC2 và trường hợp sử dụng.<br>- Hiểu cách lựa chọn AMI.<br>- Tìm hiểu về key pair và khái niệm cơ bản User Data. | 22/09/2025 | 22/09/2025 | https://docs.aws.amazon.com/ec2/ |
+| 2 | **EBS – Lưu trữ block:**<br>- Tìm hiểu các loại volume EBS và đặc tính hiệu suất.<br>- Thực hành gắn và tháo volume EBS.<br>- Hiểu về snapshots và khái niệm backup cơ bản. | 23/09/2025 | 23/09/2025 | |
+| 3 | **S3 – Lưu trữ đối tượng:**<br>- Tìm hiểu về bucket và object trong S3.<br>- Hiểu các storage class và lifecycle policy.<br>- Tìm hiểu về bucket policy và quyền truy cập cơ bản. | 24/09/2025 | 24/09/2025 | |
+| 4 | **Thực hành Lab:**<br>- Khởi chạy một instance EC2 và triển khai dịch vụ web đơn giản.<br>- Tạo một S3 bucket và upload file tĩnh.<br>- Kiểm tra truy cập nội dung tĩnh trên S3. | 25/09/2025 | 25/09/2025 | https://cloudjourney.awsstudygroup.com/ |
+| 5 | **Ôn tập & So sánh:**<br>- So sánh các trường hợp sử dụng EC2 + EBS và S3.<br>- Xác định lựa chọn lưu trữ phù hợp cho frontend assets và dữ liệu backend. | 26/09/2025 | 26/09/2025 | |
+
+---
+
+### Kiến thức bổ sung: Lựa chọn loại lưu trữ phù hợp
+
+Tuần này giúp tôi phân biệt rõ ràng giữa **block storage và object storage**:
+
+- **EBS** được thiết kế cho các workload cần đĩa lưu trữ gắn với instance EC2, chẳng hạn như hệ điều hành và cơ sở dữ liệu.  
+- **S3** được thiết kế cho lưu trữ đối tượng có khả năng mở rộng và bền vững, lý tưởng cho các tài nguyên tĩnh như file frontend, hình ảnh, và backup.  
+
+Sự phân biệt này trở nên quan trọng khi lập kế hoạch cách ứng dụng frontend có thể được hosting và phân phối hiệu quả trên AWS.
+
+---
+
+### Thành tựu Tuần 3
+
+- Nắm vững hơn về Amazon EC2, bao gồm việc lựa chọn instance và sử dụng AMI.  
+- Thành công gắn và quản lý các volume EBS, củng cố khái niệm lưu trữ bền vững.  
+- Học cách sử dụng snapshots cho mục đích backup và phục hồi.  
+- Tạo và quản lý các bucket Amazon S3 và upload nội dung tĩnh.  
+- Hiểu sự khác biệt thực tiễn giữa **EBS và S3**, đặc biệt trong bối cảnh hosting frontend assets so với dữ liệu backend.  
+- Tăng sự tự tin trong việc triển khai các workload đơn giản sử dụng dịch vụ compute và storage cốt lõi của AWS.
+
+---

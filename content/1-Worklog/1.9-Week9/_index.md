@@ -6,55 +6,63 @@ chapter: false
 pre: " <b> 1.9. </b> "
 ---
 
-### Week 9 Objectives:
-* Build core infrastructure based on the Game Card Platform design.
-* Setup **Spring Boot** Project structure and Database connectivity.
+### Week 9 Objectives
+- Set up the frontend foundation for the Game Card Platform.
+- Initialize the React project and define application structure.
+- Integrate frontend with backend APIs.
 
-### Tasks:
+---
+
+### Tasks
+
 | Day | Task | Start Date | Completion Date | Reference Material |
 | --- | --- | --- | --- | --- |
-| 1 | **VPC Build:**<br>- VPC, 2 Public Subnets, 2 Private Subnets. | 03/11/2025 | 03/11/2025 | |
-| 2 | **Gateways:**<br>- Deploy IGW and 2 NAT Gateways (High Availability). | 04/11/2025 | 04/11/2025 | |
-| 3 | **Database:**<br>- Launch RDS MySQL (Multi-AZ) in Private Subnets. | 05/11/2025 | 05/11/2025 | |
-| 4 | **Backend Setup:**<br>- Init Spring Boot project.<br>- Configure JPA & Hibernate. | 06/11/2025 | 06/11/2025 | |
-| 5 | **Verification:**<br>- Check connectivity between EC2 (Spring Boot) and RDS. | 07/11/2025 | 07/11/2025 | |
+| 1 | **Project Initialization:**<br>- Create React project.<br>- Configure folder structure (components, pages, services). | 03/11/2025 | 03/11/2025 | |
+| 2 | **Routing Setup:**<br>- Configure React Router.<br>- Define public and protected routes. | 04/11/2025 | 04/11/2025 | |
+| 3 | **API Integration:**<br>- Configure Axios instance.<br>- Connect to backend product APIs. | 05/11/2025 | 05/11/2025 | |
+| 4 | **UI Development:**<br>- Build product listing page.<br>- Implement reusable UI components. | 06/11/2025 | 06/11/2025 | |
+| 5 | **Verification:**<br>- Validate API data rendering.<br>- Handle loading and error states. | 07/11/2025 | 07/11/2025 | |
 
-### 🧠 Extra Knowledge: JPA Specifications
-In the backend logic, instead of writing raw SQL queries which are hard to maintain, I utilized **Spring Data JPA Specifications**. This allows me to build dynamic queries (e.g., filtering products by name, branch, AND price range simultaneously) in a type-safe and object-oriented way.
+---
 
-### 💻 Backend Code: Dynamic Product Search
-Here is how I implemented the advanced search logic in `ProductService.java` using `Specification` and `CriteriaBuilder`.
+### Extra Knowledge: Frontend–Backend Separation
 
-**File:** `ProductService.java`
-```java
-public Page<ProductResponse> searchProductsPublic(String keyword, String branchName, Long minPrice, Long maxPrice, Pageable pageable) {
-    Specification<Product> spec = (root, query, cb) -> {
-        List<Predicate> predicates = new ArrayList<>();
+During this week, I reinforced the importance of separating frontend and backend responsibilities. The React application communicates with the backend exclusively via REST APIs, ensuring:
 
-        // Search by name (Case insensitive)
-        if (StringUtils.hasText(keyword)) {
-            predicates.add(cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%"));
-        }
+- Loose coupling between UI and business logic
+- Independent deployment of frontend and backend
+- Easier scaling and maintenance
 
-        // Filter by Branch
-        if (StringUtils.hasText(branchName)) {
-            predicates.add(cb.equal(root.get("branch").get("name"), branchName));
-        }
+This architecture supports future migration to CDN-based hosting (e.g., S3 + CloudFront).
 
-        // Filter by Price range (Join with Variants table)
-        if (minPrice != null || maxPrice != null) {
-            var variantJoin = root.join("variant");
-            if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(variantJoin.get("price"), minPrice));
-            }
-            if (maxPrice != null) {
-                predicates.add(cb.lessThanOrEqualTo(variantJoin.get("price"), maxPrice));
-            }
-            query.distinct(true); // Avoid duplicates
-        }
+---
 
-        return cb.and(predicates.toArray(new Predicate[0]));
-    };
+### Frontend Implementation: Axios Service Layer
 
-    return productRepository.findAll(spec, pageable).map(this::convertToProductResponse);
-}
+To avoid duplicating API logic across components, I implemented a centralized Axios service.
+
+**File:** `apiClient.ts`
+
+```typescript
+import axios from "axios";
+
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 10000,
+});
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
+
+export default apiClient;
+```
+
+## Achievements
+
+* Successfully initialized and structured the React frontend project.
+* Implemented routing and page navigation using React Router.
+* Integrated backend APIs using a centralized Axios configuration.
+* Rendered dynamic data from the backend in frontend components.
+* Established a scalable frontend architecture for future feature expansion.
